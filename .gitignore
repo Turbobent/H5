@@ -34,7 +34,7 @@ obj/
 
 *.sqlite3
 
-appsettings*.json  # Ignore sensitive config files
+appsettings.json  # Ignore sensitive config files
 
 secrets.json
 
