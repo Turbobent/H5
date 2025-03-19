@@ -21,20 +21,6 @@
             return await _context.Users.ToListAsync();
         }
 
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
-        }
-
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, Edit user)
         {
@@ -45,9 +31,6 @@
                 return NotFound();
             }
 
-            // Hash the password
-            var HashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
-
             // Regex patterns
             Regex validateUsername = new(@"^[a-zA-Z0-9]{5,15}$");  // Only letters and numbers (5-15 chars)
             Regex validateEmail = new(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");  // Standard email format
@@ -56,32 +39,43 @@
             var errors = new Dictionary<string, string>();
 
             // Validate username format only if changed
-            if (user.Username != userEdit.Username)
+            if (!string.IsNullOrWhiteSpace(user.Username) && user.Username != userEdit.Username)
             {
                 if (!validateUsername.IsMatch(user.Username))
                 {
                     errors["Username"] = "Username must be 5-15 characters long and contain only letters and numbers.";
                 }
-                else if (_context.Users.Any(x => x.Username == user.Username))
+                else if (_context.Users.Any(x => x.Username == user.Username && x.Id != id))
                 {
                     errors["Username"] = "Username is already taken.";
                 }
             }
 
             // Validate email format
-            if (!validateEmail.IsMatch(user.Email))
+            if (!string.IsNullOrWhiteSpace(user.Email) && user.Email != userEdit.Email)
             {
-                errors["Email"] = "Invalid email format.";
-            }
-            else if (user.Email != userEdit.Email && _context.Users.Any(x => x.Email == user.Email))
-            {
-                errors["Email"] = "Email is already registered.";
+                if (!validateEmail.IsMatch(user.Email))
+                {
+                    errors["Email"] = "Invalid email format.";
+                }
+                else if (_context.Users.Any(x => x.Email == user.Email && x.Id != id))
+                {
+                    errors["Email"] = "Email is already registered.";
+                }
             }
 
-            // Validate password strength
-            if (!validatePassword.IsMatch(user.Password))
+            // Validate password strength only if provided
+            if (!string.IsNullOrWhiteSpace(user.Password))
             {
-                errors["Password"] = "Password must be at least 8 characters long, contain at least one letter, one number, and one special character.";
+                if (!validatePassword.IsMatch(user.Password))
+                {
+                    errors["Password"] = "Password must be at least 8 characters long, contain at least one letter, one number, and one special character.";
+                }
+                else
+                {
+                    userEdit.HashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
+                    userEdit.Salt = userEdit.HashedPassword.Substring(0, 29);
+                }
             }
 
             if (errors.Count > 0)
@@ -89,11 +83,10 @@
                 return BadRequest(new { Errors = errors });
             }
 
-            // Update fields
-            userEdit.Username = user.Username;
-            userEdit.Email = user.Email;
-            userEdit.HashedPassword = HashedPassword;
-            userEdit.Salt = HashedPassword.Substring(0, 29);
+            // Update fields only if they are provided
+            if (!string.IsNullOrWhiteSpace(user.Username)) userEdit.Username = user.Username;
+            if (!string.IsNullOrWhiteSpace(user.Email)) userEdit.Email = user.Email;
+
             userEdit.UpdatedAt = DateTime.UtcNow;
 
             _context.Entry(userEdit).State = EntityState.Modified;
@@ -104,7 +97,7 @@
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!UserExists(id))
+                if (!_context.Users.Any(e => e.Id == id))
                 {
                     return NotFound();
                 }
@@ -115,6 +108,7 @@
             }
             return NoContent();
         }
+
 
         [HttpPost("signUp")]
         public async Task<ActionResult<User>> Signup(Signup userSignUp)
@@ -187,7 +181,7 @@
         [HttpPost("login")]
         public async Task<IActionResult> Login(Login userLogin)
         {
-            var findUser = await _context.Users.SingleOrDefaultAsync(x => x.Username == userLogin.UserName || x.Email == userLogin.UserName);
+            var findUser = await _context.Users.SingleOrDefaultAsync(x => x.Username == userLogin.Username || x.Email == userLogin.Username);
 
             if (findUser == null || !BCrypt.Net.BCrypt.Verify(userLogin.Password, findUser.HashedPassword))
             {
