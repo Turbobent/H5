@@ -7,4 +7,10 @@
         public User user { get; set; }
         public int UserId { get; set; }
     }
+
+    public class PostUser_Device
+    {
+        public int DeviceId { get; set; }
+        public int UserId { get; set; }
+    }
 }
