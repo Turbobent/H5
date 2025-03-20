@@ -71,11 +71,11 @@
                 var log = new Log
                 {
                     DeviceId = postlog.DeviceId,
-                    Date = postlog.Date,
-                    ArmedTime = postlog.ArmedTime,
-                    DisarmedTime = postlog.DisarmedTime,
+                    Date = DateOnly.Parse(postlog.Date),
+                    ArmedTime = TimeOnly.Parse(postlog.ArmedTime),
+                    DisarmedTime = TimeOnly.Parse(postlog.DisarmedTime),
                     IsTriggered = postlog.IsTriggered,
-                    TriggeredTime = postlog.TriggeredTime,
+                    TriggeredTime = string.IsNullOrEmpty(postlog.TriggeredTime) ? null : TimeOnly.Parse(postlog.TriggeredTime),
                     UpdatedAt = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow
                 };
