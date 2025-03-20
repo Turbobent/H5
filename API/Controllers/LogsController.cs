@@ -64,33 +64,30 @@
         }
 
         [HttpPost]
-        public async Task<ActionResult<Log>> PostLog(PostLog postlog)
+        public async Task<ActionResult<Log>> PostLog([FromBody] PostLog postlog)
         {
-            try
+            if (postlog == null)
             {
-                var log = new Log
-                {
-                    DeviceId = postlog.DeviceId,
-                    Date = DateOnly.Parse(postlog.Date),
-                    ArmedTime = TimeOnly.Parse(postlog.ArmedTime),
-                    DisarmedTime = TimeOnly.Parse(postlog.DisarmedTime),
-                    IsTriggered = postlog.IsTriggered,
-                    TriggeredTime = string.IsNullOrEmpty(postlog.TriggeredTime) ? null : TimeOnly.Parse(postlog.TriggeredTime),
-                    UpdatedAt = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow
-                };
+                return BadRequest("PostLog object is null");
+            }
 
-                _context.Logs.Add(log);
-                await _context.SaveChangesAsync();
-                return CreatedAtAction("GetLog", new { id = log.Id }, log);
-            }
-            catch (Exception ex)
+            Log log = new()
             {
-                Console.WriteLine($"Error: {ex.Message}");
-                return StatusCode(500, new { message = "An error occurred", error = ex.Message });
-            }
+                DeviceId = postlog.DeviceId,
+                Date = postlog.Date,
+                ArmedTime = postlog.ArmedTime,
+                DisarmedTime = postlog.DisarmedTime,
+                IsTriggered = postlog.IsTriggered,
+                TriggeredTime = postlog.TriggeredTime,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Logs.Add(log);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetLog), new { id = log.Id }, log);
         }
-
 
         // DELETE: api/Logs/5
         [HttpDelete("{id}")]
