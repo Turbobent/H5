@@ -66,25 +66,31 @@
         [HttpPost]
         public async Task<ActionResult<Log>> PostLog(PostLog postlog)
         {
-            Log log = new()
+            try
             {
-                DeviceId = postlog.DeviceId,
-                Date = postlog.Date, 
+                var log = new Log
+                {
+                    DeviceId = postlog.DeviceId,
+                    Date = postlog.Date,
+                    ArmedTime = postlog.ArmedTime,
+                    DisarmedTime = postlog.DisarmedTime,
+                    IsTriggered = postlog.IsTriggered,
+                    TriggeredTime = postlog.TriggeredTime,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
+                };
 
-                ArmedTime = postlog.ArmedTime,
-                DisarmedTime = postlog.DisarmedTime,
-                IsTriggered = postlog.IsTriggered,
-                TriggeredTime = postlog.TriggeredTime,
-
-                UpdatedAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Logs.Add(log);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetLog), new { id = log.Id }, log);
+                _context.Logs.Add(log);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction("GetLog", new { id = log.Id }, log);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, new { message = "An error occurred", error = ex.Message });
+            }
         }
+
 
         // DELETE: api/Logs/5
         [HttpDelete("{id}")]

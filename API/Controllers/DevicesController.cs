@@ -73,8 +73,22 @@ namespace API.Controllers
             return NoContent();
         }
 
-        // POST: api/Devices
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+
+        [HttpPost("Login")]
+        public async Task<ActionResult<Device>> DeviceLogin(DeviceLogin deviceLogin)
+        {
+            Device device = new()
+            {
+                DeviceId = deviceLogin.DeviceId,
+                Password = deviceLogin.Password,
+            };
+
+            _context.Devices.Add(device);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetDevice", new { id = device.Id }, device);
+        }
+
         [HttpPost]
         public async Task<ActionResult<Device>> PostDevice(Device device)
         {
