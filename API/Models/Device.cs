@@ -8,7 +8,7 @@
         public string Name { get; set; }
     }
 
-    public class Login
+    public class DeviceLogin
     {
         public int DeviceId { get; set; }
         public string Password { get; set; }
