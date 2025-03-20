@@ -109,7 +109,6 @@
             return NoContent();
         }
 
-
         [HttpPost("signUp")]
         public async Task<ActionResult<User>> Signup(Signup userSignUp)
         {

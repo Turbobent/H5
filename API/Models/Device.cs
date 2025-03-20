@@ -4,7 +4,14 @@
     {
         public bool Status { get; set; }
         public int DeviceId { get; set; }
+        public string Password { get; set; }
         public string Name { get; set; }
+    }
+
+    public class Login
+    {
+        public int DeviceId { get; set; }
+        public string Password { get; set; }
     }
     public class PostDevice
     {

@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using API.Data;
-using API.Models;
-
-namespace API.Controllers
+﻿namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -73,15 +63,27 @@ namespace API.Controllers
             return NoContent();
         }
 
-        // POST: api/Logs
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Log>> PostLog(Log log)
+        public async Task<ActionResult<Log>> PostLog(PostLog postlog)
         {
+            Log log = new()
+            {
+                DeviceId = postlog.DeviceId,
+                Date = postlog.Date, 
+
+                ArmedTime = postlog.ArmedTime,
+                DisarmedTime = postlog.DisarmedTime,
+                IsTriggered = postlog.IsTriggered,
+                TriggeredTime = postlog.TriggeredTime,
+
+                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
+
             _context.Logs.Add(log);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetLog", new { id = log.Id }, log);
+            return CreatedAtAction(nameof(GetLog), new { id = log.Id }, log);
         }
 
         // DELETE: api/Logs/5
