@@ -229,3 +229,6 @@ docker-compose.override.yml
 docker-entrypoint.sh
 
  
+/API/appsettings.json
+/API/appsettings.Development.json
+/API/Properties/launchSettings.json
