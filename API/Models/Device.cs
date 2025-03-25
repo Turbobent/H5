@@ -2,31 +2,39 @@
 {
     public class Device : Common
     {
+        [Key]
+        public string DeviceId { get; set; }
         public bool Status { get; set; }
-        public int DeviceId { get; set; }
         public string Password { get; set; }
         public string Name { get; set; }
     }
 
+    public class DeviceMakePassword
+    {
+        public string DeviceId { get; set; }
+        public string Password { get; set; }
+    }
     public class DeviceLogin
     {
-        public int DeviceId { get; set; }
+        public string DeviceId { get; set; }
         public string Password { get; set; }
     }
     public class PostDevice
     {
         public string Name { get; set; }
-        public int DeviceId { get; set; }
+        public string DeviceId { get; set; }
 
         public bool Status = false;
+        public string Password { get; set; }
+
     }
-    class UpdateName
+    public class UpdateName
     {
-        public string Name { get; set; }
+        public string NewName { get; set; }
     }
-    class UpadteStatus
+    public class UpadteStatus
     {
-        public int DeviceId { get; set; }
+        public string DeviceId { get; set; }
         public bool Status { get; set; }
     }
 }

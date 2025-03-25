@@ -73,6 +73,25 @@ namespace API.Controllers
             return NoContent();
         }
 
+        [HttpPut("UpdateName/{id}")]
+        public async Task<IActionResult> PutDeviceName(int id, UpdateName device)
+        {
+            // Find the device in the database
+            var deviceEntity = await _context.Devices.FindAsync(id);
+            if (deviceEntity == null)
+            {
+                return NotFound(new { message = "Device not found" });
+            }
+
+            // Update the name
+            deviceEntity.Name = device.NewName;
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Name updated successfully" });
+        }
+
 
         [HttpPost("Login")]
         public async Task<ActionResult<Device>> DeviceLogin(DeviceLogin deviceLogin)
@@ -89,10 +108,65 @@ namespace API.Controllers
             return CreatedAtAction("GetDevice", new { id = device.Id }, device);
         }
 
+        [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Device>> PostDevice(Device device)
+        public async Task<ActionResult<Device>> PostDevice(PostDevice postdevice)
         {
+            Regex validateDevicePassword = new(@"^[0-9]{1,}$");
+            var errors = new Dictionary<string, string>();
+
+            if (!validateDevicePassword.IsMatch(postdevice.Password))
+            {
+                errors["Username"] = "Username must be 5-15 characters long and contain only letters and numbers.";
+            }
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(new { Errors = errors });
+            }
+
+            // Get user ID from token
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                return Unauthorized(new { Message = "User not authenticated." });
+            }
+
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return BadRequest(new { Message = "Invalid user ID format." });
+            }
+
+            // Check if the DeviceId already exists in the Devices table
+            var deviceExists = await _context.Devices.AnyAsync(d => d.DeviceId == postdevice.DeviceId);
+            if (deviceExists)
+            {
+                return BadRequest(new { Message = $"Device with ID {postdevice.DeviceId} already exists." });
+            }
+
+            // Create and save the new Device
+            Device device = new()
+            {
+                DeviceId = postdevice.DeviceId,
+                Status = postdevice.Status,
+                Password = postdevice.Password,
+                Name = postdevice.Name,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+            };
+
             _context.Devices.Add(device);
+            await _context.SaveChangesAsync();
+
+            // Create and save the User_Device relationship
+            User_Device joinDeviceAndUser = new()
+            {
+                DeviceId = postdevice.DeviceId,
+                UserId = userId,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+            };
+            _context.User_Devices.Add(joinDeviceAndUser);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetDevice", new { id = device.Id }, device);
