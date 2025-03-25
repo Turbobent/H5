@@ -219,13 +219,6 @@
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        [Authorize]
-        [HttpPost("logout")]
-        public IActionResult Logout()
-        {
-            return Ok(new { message = "Logged out successfully" });
-        }
-
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
