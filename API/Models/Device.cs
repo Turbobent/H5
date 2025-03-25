@@ -32,9 +32,13 @@
     {
         public string NewName { get; set; }
     }
-    public class UpadteStatus
+    public class UpdateSta
     {
-        public string DeviceId { get; set; }
         public bool Status { get; set; }
+    }
+    public class UpadtePassword
+    {
+        public string NewPassword { get; set; }
+
     }
 }

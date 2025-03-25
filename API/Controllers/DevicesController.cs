@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using API.Data;
-using API.Models;
+﻿using API.Models;
+using System.Data;
 
 namespace API.Controllers
 {
@@ -73,6 +66,24 @@ namespace API.Controllers
             return NoContent();
         }
 
+        [HttpPut("UpdateStatus/{id}")]
+        public async Task<IActionResult> PutDeviceName(int id, UpdateSta device)
+        {
+            // Find the device in the database
+            var deviceEntity = await _context.Devices.FindAsync(id);
+            if (deviceEntity == null)
+            {
+                return NotFound(new { message = "Device not found" });
+            }
+
+            deviceEntity.Status = device.Status;
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Status updated successfully" });
+        }
+
         [HttpPut("UpdateName/{id}")]
         public async Task<IActionResult> PutDeviceName(int id, UpdateName device)
         {
@@ -92,6 +103,30 @@ namespace API.Controllers
             return Ok(new { message = "Name updated successfully" });
         }
 
+        [HttpPut("UpdatePassword/{id}")]
+        public async Task<IActionResult> PutNewpassword(int id, UpadtePassword device)
+        {
+            // Find the device in the database
+            var deviceEntity = await _context.Devices.FindAsync(id);
+            if (deviceEntity == null)
+            {
+                return NotFound(new { message = "Device not found" });
+            }
+
+            Regex validateDevicePassword = new(@"^[0-9]{1,}$");
+            var errors = new Dictionary<string, string>();
+
+            if (!validateDevicePassword.IsMatch(device.NewPassword))
+            {
+                errors["Password"] = "password can only contain numbers.";
+            }
+            deviceEntity.Password = device.NewPassword;
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Password updated successfully" });
+        }
 
         [HttpPost("Login")]
         public async Task<ActionResult<Device>> DeviceLogin(DeviceLogin deviceLogin)
@@ -117,7 +152,7 @@ namespace API.Controllers
 
             if (!validateDevicePassword.IsMatch(postdevice.Password))
             {
-                errors["Username"] = "Username must be 5-15 characters long and contain only letters and numbers.";
+                errors["Password"] = "password can only contain numbers.";
             }
 
             if (errors.Count > 0)

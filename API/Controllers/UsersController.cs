@@ -21,6 +21,7 @@
             return await _context.Users.ToListAsync();
         }
 
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, Edit user)
         {
