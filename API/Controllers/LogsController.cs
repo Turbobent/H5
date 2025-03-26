@@ -70,6 +70,7 @@
             {
                 DeviceId = postLog.DeviceId,
                 Date = postLog.Date,
+                EndDate = postLog.EndDate,
                 ArmedTime = postLog.ArmedTime,
                 DisarmedTime = postLog.DisarmedTime,
                 IsTriggered = postLog.IsTriggered,
