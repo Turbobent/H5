@@ -1,21 +1,8 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-
-using Microsoft.IdentityModel.Tokens;
-
-using Microsoft.OpenApi.Models;
-
-using System.Text;
-
 namespace API
-
 {
-
     public class Program
-
     {
-
         public static void Main(string[] args)
-
         {
 
             var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +14,6 @@ namespace API
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddCors(options =>
-
             {
 
                 options.AddPolicy("AllowAll", policy =>
@@ -47,13 +33,11 @@ namespace API
             builder.Services.AddEndpointsApiExplorer();
 
             builder.Services.AddSwaggerGen(opt =>
-
             {
 
                 opt.SwaggerDoc("v1", new OpenApiInfo { Title = "MyAPI", Version = "v1" });
 
                 opt.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-
                 {
 
                     In = ParameterLocation.Header,
@@ -71,17 +55,13 @@ namespace API
                 });
 
                 opt.AddSecurityRequirement(new OpenApiSecurityRequirement
-
                 {
-
                     {
 
                         new OpenApiSecurityScheme
-
                         {
 
                             Reference = new OpenApiReference
-
                             {
 
                                 Type = ReferenceType.SecurityScheme,
@@ -103,13 +83,11 @@ namespace API
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
                 .AddJwtBearer(options =>
-
                 {
 
                     var key = Configuration["JwtSettings:Key"] ?? Environment.GetEnvironmentVariable("Key");
 
                     if (string.IsNullOrEmpty(key))
-
                     {
 
                         throw new InvalidOperationException("JWT Key is not configured.");
@@ -117,7 +95,6 @@ namespace API
                     }
 
                     options.TokenValidationParameters = new TokenValidationParameters
-
                     {
 
                         ValidIssuer = Configuration["JwtSettings:Issuer"] ?? Environment.GetEnvironmentVariable("Issuer"),
@@ -145,7 +122,6 @@ namespace API
             app.UseSwagger();
 
             app.UseSwaggerUI(c =>
-
             {
 
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
