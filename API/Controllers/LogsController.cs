@@ -64,29 +64,29 @@
         }
 
         [HttpPost]
-        public async Task<ActionResult<Log>> PostLog([FromBody] PostLog postlog)
+        public async Task<ActionResult<Log>> PostLog(PostLog postLog)
         {
-            if (postlog == null)
+            try
             {
-                return BadRequest("PostLog object is null");
+                var log = new Log
+                {
+                    DeviceId = postLog.DeviceId,
+                    Date = postLog.Date.Date, 
+                    ArmedTime = postLog.ArmedTime, 
+                    DisarmedTime = postLog.DisarmedTime, 
+                    IsTriggered = postLog.IsTriggered,
+                    TriggeredTime = postLog.TriggeredTime
+                };
+
+                _context.Logs.Add(log);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetLog), new { id = log.Id }, log);
             }
-
-            Log log = new()
+            catch (Exception ex) // Broader exception handling
             {
-                DeviceId = postlog.DeviceId,
-                Date = postlog.Date,
-                ArmedTime = postlog.ArmedTime,
-                DisarmedTime = postlog.DisarmedTime,
-                IsTriggered = postlog.IsTriggered,
-                TriggeredTime = postlog.TriggeredTime,
-                UpdatedAt = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Logs.Add(log);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetLog), new { id = log.Id }, log);
+                return BadRequest($"Error: {ex.Message}");
+            }
         }
 
         // DELETE: api/Logs/5
