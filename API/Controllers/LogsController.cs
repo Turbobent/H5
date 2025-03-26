@@ -69,12 +69,14 @@
             var log = new Log
             {
                 DeviceId = postLog.DeviceId,
-                Date = postLog.Date,
-                EndDate = postLog.EndDate,
-                ArmedTime = postLog.ArmedTime,
-                DisarmedTime = postLog.DisarmedTime,
+                Date = new DateOnly(postLog.Date.Year, postLog.Date.Month, postLog.Date.Day),
+                EndDate = new DateOnly(postLog.EndDate.Year, postLog.EndDate.Month, postLog.EndDate.Day),
+                ArmedTime = new TimeOnly(postLog.ArmedTime.Hour, postLog.ArmedTime.Minute),
+                DisarmedTime = new TimeOnly(postLog.DisarmedTime.Hour, postLog.DisarmedTime.Minute),
                 IsTriggered = postLog.IsTriggered,
-                TriggeredTime = postLog.TriggeredTime
+                TriggeredTime = postLog.TriggeredTime != null
+                    ? new TimeOnly(postLog.TriggeredTime.Hour, postLog.TriggeredTime.Minute)
+                    : null
             };
 
             _context.Logs.Add(log);
