@@ -16,10 +16,11 @@
     <nav aria-label="Footer Navigation">
       <ul class="flex items-center gap-6 text-sm">
         <li>
-          <a class="text-gray-500 transition hover:text-gray-500/75" href="#">About</a>
+          <a class="text-gray-500 transition hover:text-gray-500/75" href="<?= $baseURL; ?>pages/about.php">About</a>
         </li>
         <li>
-          <a class="text-gray-500 transition hover:text-gray-500/75" href="#">Contact</a>
+          <a class="text-gray-500 transition hover:text-gray-500/75"
+            href="<?= $baseURL; ?>pages/contact.php">Contact</a>
         </li>
       </ul>
     </nav>
