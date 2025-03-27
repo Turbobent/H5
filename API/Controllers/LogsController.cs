@@ -64,23 +64,37 @@
         }
 
         [HttpPost]
-        public async Task<ActionResult<Log>> PostLog(PostLog postLog)
+        public async Task<ActionResult<Log>> PostLog([FromBody] PostLog postLog) // Add [FromBody]
         {
-            var log = new Log
+            if (postLog == null)
             {
-                DeviceId = postLog.DeviceId,
-                Date = postLog.Date,
-                EndDate = postLog.EndDate,
-                ArmedTime = postLog.ArmedTime,
-                DisarmedTime = postLog.DisarmedTime,
-                IsTriggered = postLog.IsTriggered,
-                TriggeredTime = postLog.TriggeredTime
-            };
+                return BadRequest("Request body is empty");
+            }
 
-            _context.Logs.Add(log);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var log = new Log
+                {
+                    DeviceId = postLog.DeviceId,
+                    Date = new DateOnly(postLog.Date.Year, postLog.Date.Month, postLog.Date.Day),
+                    EndDate = new DateOnly(postLog.EndDate.Year, postLog.EndDate.Month, postLog.EndDate.Day),
+                    ArmedTime = new TimeOnly(postLog.ArmedTime.Hour, postLog.ArmedTime.Minute),
+                    DisarmedTime = new TimeOnly(postLog.DisarmedTime.Hour, postLog.DisarmedTime.Minute),
+                    IsTriggered = postLog.IsTriggered,
+                    TriggeredTime = postLog.TriggeredTime != null
+                        ? new TimeOnly(postLog.TriggeredTime.Hour, postLog.TriggeredTime.Minute)
+                        : null
+                };
 
-            return CreatedAtAction(nameof(GetLog), new { id = log.Id }, log);
+                _context.Logs.Add(log);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(nameof(GetLog), new { id = log.Id }, log);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error: {ex.Message}");
+            }
         }
 
         // DELETE: api/Logs/5
