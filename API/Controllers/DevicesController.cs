@@ -67,7 +67,7 @@ namespace API.Controllers
         }
 
         [HttpPut("UpdateStatus/{id}")]
-        public async Task<IActionResult> PutDeviceName(int id, UpdateSta device)
+        public async Task<IActionResult> PutDeviceName(string id, UpdateSta device)
         {
             // Find the device in the database
             var deviceEntity = await _context.Devices.FindAsync(id);
@@ -85,7 +85,7 @@ namespace API.Controllers
         }
 
         [HttpPut("UpdateName/{id}")]
-        public async Task<IActionResult> PutDeviceName(int id, UpdateName device)
+        public async Task<IActionResult> PutDeviceName(string id, UpdateName device)
         {
             // Find the device in the database
             var deviceEntity = await _context.Devices.FindAsync(id);
@@ -104,7 +104,7 @@ namespace API.Controllers
         }
 
         [HttpPut("UpdatePassword/{id}")]
-        public async Task<IActionResult> PutNewpassword(int id, UpadtePassword device)
+        public async Task<IActionResult> PutNewpassword(string id, UpadtePassword device)
         {
             // Find the device in the database
             var deviceEntity = await _context.Devices.FindAsync(id);
