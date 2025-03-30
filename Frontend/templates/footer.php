@@ -1,5 +1,13 @@
 <!-- Include our links.php -->
-<?php include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php"); ?>
+<?php 
+  include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
+  
+  // Block access to this page
+  if (basename($_SERVER['PHP_SELF']) === basename(__FILE__)) {
+    http_response_code(403);
+    exit('Access denied.');
+  }
+?>
 
 <footer class="bg-[#282828]">
   <div
@@ -16,11 +24,11 @@
     <nav aria-label="Footer Navigation">
       <ul class="flex items-center gap-6 text-sm">
         <li>
-          <a class="text-gray-500 transition hover:text-gray-500/75" href="<?= $baseURL; ?>pages/about.php">About</a>
+          <a class="text-gray-500 transition hover:text-gray-500/75" href="<?= $baseURL; ?>about">About</a>
         </li>
         <li>
           <a class="text-gray-500 transition hover:text-gray-500/75"
-            href="<?= $baseURL; ?>pages/contact.php">Contact</a>
+            href="<?= $baseURL; ?>contact">Contact</a>
         </li>
       </ul>
     </nav>

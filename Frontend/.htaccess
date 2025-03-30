@@ -1,0 +1,8 @@
+RewriteEngine On
+
+RewriteRule ^login$ pages/login.php [L]
+RewriteRule ^signup$ pages/signup.php [L]
+RewriteRule ^dashboard$ pages/dashboard.php [L]
+RewriteRule ^edit-profile$ pages/edit-profile.php [L]
+RewriteRule ^about$ pages/about.php [L]
+RewriteRule ^contact$ pages/contact.php [L]

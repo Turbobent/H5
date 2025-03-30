@@ -2,6 +2,7 @@
 session_start();
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/auth.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/tailwind-styling.php");
 
 // Redirect if not logged in
 require_login();
@@ -16,14 +17,14 @@ require_login();
   <title>Sentinel - Dashboard</title>
 </head>
 
-<body class="bg-[#6CD9D9]">
+<body class="<?= $defaultBackgroundColor ?>">
 
   <!-- Header -->
   <?php include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/header.php"); ?>
 
   <!-- Main -->
   <section>
-    <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:min-h-[calc(100vh-140px)] lg:py-0">
+    <div class="<?= $defaultCenterAndFixedHeight ?>">
       <div
         class="flex flex-col items-center justify-center gap-4 bg-[#D3D3D3] h-[200px] w-[500px] rounded-lg p-6 shadow">
 
