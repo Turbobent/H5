@@ -2,7 +2,6 @@
 {
     public class Device : Common
     {
-        [Key]
         public string DeviceId { get; set; }
         public bool Status { get; set; }
         public string Name { get; set; }
@@ -11,12 +10,11 @@
 
         // Navigation property
         [ForeignKey("SharedPasswordId")]  // Attribute goes here
-        public SharedPassword SharedPassword { get; set; }
+        public SharedPassword? SharedPassword { get; set; }
     }
 
     public class SharedPassword
     {
-        [Key]
         public string PasswordId { get; set; }
         public string HashedPassword { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
