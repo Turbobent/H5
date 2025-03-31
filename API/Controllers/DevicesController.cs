@@ -21,18 +21,23 @@ namespace API.Controllers
             return await _context.Devices.ToListAsync();
         }
 
-        // GET: api/Devices/5
+        // GET: api/Devices/ABC123
         [HttpGet("{deviceId}")]
-        public async Task<ActionResult<Device>> GetDevice(string id)
+        public async Task<ActionResult<Device>> GetDevice(string deviceId)
         {
-            var device = await _context.Devices.FindAsync(id);
+            if (string.IsNullOrWhiteSpace(deviceId))
+            {
+                return BadRequest("Device ID is required");
+            }
+
+            var device = await _context.Devices.FindAsync(deviceId);
 
             if (device == null)
             {
-                return NotFound();
+                return NotFound($"Device with ID {deviceId} not found");
             }
 
-            return device;
+            return Ok(device);  // Explicit Ok() for consistency
         }
 
         // PUT: api/Devices/5
@@ -103,29 +108,40 @@ namespace API.Controllers
             return Ok(new { message = "Name updated successfully" });
         }
 
-        [HttpPut("UpdatePassword/{id}")]
-        public async Task<IActionResult> PutNewpassword(string id, UpdatePassword device)
+        [HttpPut("{deviceId}/password")]
+        public async Task<IActionResult> UpdateDevicePassword(
+        string deviceId,
+        [FromBody] UpdatePassword request)  // Changed parameter name to 'request'
         {
-            // Find the device in the database
-            var deviceEntity = await _context.Devices.FindAsync(id);
-            if (deviceEntity == null)
+            // 1. Validate inputs
+            if (string.IsNullOrWhiteSpace(deviceId))
             {
-                return NotFound(new { message = "Device not found" });
+                return BadRequest("Device ID is required");
             }
 
-            Regex validateDevicePassword = new(@"^[0-9]{1,}$");
-            var errors = new Dictionary<string, string>();
-
-            if (!validateDevicePassword.IsMatch(device.NewPassword))
+            if (request == null || string.IsNullOrWhiteSpace(request.NewPassword))
             {
-                errors["Password"] = "password can only contain numbers.";
+                return BadRequest("New password is required");
             }
-            deviceEntity.Password = device.NewPassword;
 
-            // Save changes to the database
+            // 2. Find device
+            var device = await _context.Devices.FindAsync(deviceId);
+            if (device == null)
+            {
+                return NotFound($"Device {deviceId} not found");
+            }
+
+            // 3. Validate password format
+            if (!Regex.IsMatch(request.NewPassword, @"^\d{4,8}$"))  // 4-8 digits
+            {
+                return BadRequest("Password must be 4-8 digits");
+            }
+
+            // 4. Update and save
+            device.Password = request.NewPassword;  // Access NewPassword property
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Password updated successfully" });
+            return NoContent();  // 204 No Content
         }
 
         [HttpPost("Login")]
