@@ -138,7 +138,6 @@ namespace API.Controllers
             }
 
             // 4. Update and save
-            device.Password = request.NewPassword;  // Access NewPassword property
             await _context.SaveChangesAsync();
 
             return NoContent();  // 204 No Content
@@ -150,7 +149,6 @@ namespace API.Controllers
             Device device = new()
             {
                 DeviceId = deviceLogin.DeviceId,
-                Password = deviceLogin.Password,
             };
 
             _context.Devices.Add(device);
@@ -161,66 +159,86 @@ namespace API.Controllers
 
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Device>> PostDevice(PostDevice postdevice)
+        public async Task<ActionResult<Device>> PostDevice(PostDevice postDevice)
         {
-            Regex validateDevicePassword = new(@"^[0-9]{1,}$");
+            // 1. Validate input
             var errors = new Dictionary<string, string>();
 
-            if (!validateDevicePassword.IsMatch(postdevice.Password))
+            if (!Regex.IsMatch(postDevice.Password, @"^\d{4,8}$"))
             {
-                errors["Password"] = "password can only contain numbers.";
+                errors["Password"] = "Password must be 4-8 numeric digits";
             }
 
-            if (errors.Count > 0)
+            if (string.IsNullOrWhiteSpace(postDevice.DeviceId))
+            {
+                errors["DeviceId"] = "Device ID is required";
+            }
+
+            if (errors.Any())
             {
                 return BadRequest(new { Errors = errors });
             }
 
-            // Get user ID from token
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
+            // 2. Get authenticated user
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userId, out int parsedUserId))
             {
-                return Unauthorized(new { Message = "User not authenticated." });
+                return Unauthorized("Invalid user credentials");
             }
 
-            if (!int.TryParse(userIdClaim, out int userId))
+            // 3. Check for existing device
+            if (await _context.Devices.AnyAsync(d => d.DeviceId == postDevice.DeviceId))
             {
-                return BadRequest(new { Message = "Invalid user ID format." });
+                return Conflict($"Device {postDevice.DeviceId} already exists");
             }
 
-            // Check if the DeviceId already exists in the Devices table
-            var deviceExists = await _context.Devices.AnyAsync(d => d.DeviceId == postdevice.DeviceId);
-            if (deviceExists)
+            // 4. Create shared password if it doesn't exist
+            var sharedPassword = await _context.SharedPasswords
+                .FirstOrDefaultAsync(sp => sp.HashedPassword == postDevice.Password);
+
+            if (sharedPassword == null)
             {
-                return BadRequest(new { Message = $"Device with ID {postdevice.DeviceId} already exists." });
+                sharedPassword = new SharedPassword
+                {
+                    PasswordId = $"SP_{Guid.NewGuid().ToString("N")}",
+                    HashedPassword = BCrypt.Net.BCrypt.HashPassword(postDevice.Password),
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.SharedPasswords.Add(sharedPassword);
             }
 
-            // Create and save the new Device
-            Device device = new()
+            // 5. Create device
+            var device = new Device
             {
-                DeviceId = postdevice.DeviceId,
-                Status = postdevice.Status,
-                Password = postdevice.Password,
-                Name = postdevice.Name,
-                UpdatedAt = DateTime.UtcNow,
+                DeviceId = postDevice.DeviceId,
+                Name = postDevice.Name,
+                Status = postDevice.Status,
+                SharedPasswordId = sharedPassword.PasswordId,
                 CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             _context.Devices.Add(device);
-            await _context.SaveChangesAsync();
 
-            // Create and save the User_Device relationship
-            User_Device joinDeviceAndUser = new()
+            // 6. Create user-device relationship
+            _context.User_Devices.Add(new User_Device
             {
-                DeviceId = postdevice.DeviceId,
-                UserId = userId,
-                UpdatedAt = DateTime.UtcNow,
+                DeviceId = postDevice.DeviceId,
+                UserId = parsedUserId,
                 CreatedAt = DateTime.UtcNow,
-            };
-            _context.User_Devices.Add(joinDeviceAndUser);
+                UpdatedAt = DateTime.UtcNow
+            });
+
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetDevice", new { id = device.Id }, device);
+            // 7. Return response (excluding sensitive data)
+            return CreatedAtAction(nameof(GetDevice), new { id = device.DeviceId }, new
+            {
+                device.DeviceId,
+                device.Name,
+                device.Status,
+                CreatedAt = device.CreatedAt
+            });
         }
 
         // DELETE: api/Devices/5
