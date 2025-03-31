@@ -7,7 +7,7 @@
         public bool Status { get; set; }
         public string Name { get; set; }
 
-        public string SharedPasswordId { get; set; }  
+        public string? SharedPasswordId { get; set; }  
 
         // Navigation property
         [ForeignKey("SharedPasswordId")]  // Attribute goes here
