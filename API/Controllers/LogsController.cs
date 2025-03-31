@@ -18,6 +18,33 @@
             return await _context.Logs.ToListAsync();
         }
 
+        // GET: api/Logs/device/5
+        [HttpGet("device/{deviceId}")]
+        public async Task<ActionResult<IEnumerable<LogDto>>> GetLogsByDeviceId(string deviceId)
+        {
+            var logs = await _context.Logs
+                .Where(l => l.DeviceId == deviceId)
+                .OrderByDescending(l => l.Date)
+                .Select(l => new LogDto
+                {
+                    DeviceId = l.DeviceId,
+                    Date = l.Date,
+                    EndDate = l.EndDate,
+                    ArmedTime = l.ArmedTime,
+                    DisarmedTime = l.DisarmedTime,
+                    IsTriggered = l.IsTriggered,
+                    TriggeredTime = l.TriggeredTime
+                })
+                .ToListAsync();
+
+            if (!logs.Any())
+            {
+                return NotFound($"No logs found for device with ID: {deviceId}");
+            }
+
+            return Ok(logs);
+        }
+
         // GET: api/Logs/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Log>> GetLog(int id)
@@ -64,7 +91,7 @@
         }
 
         [HttpPost]
-        public async Task<ActionResult<Log>> PostLog([FromBody] PostLog postLog) // Add [FromBody]
+        public async Task<ActionResult<Log>> PostLog([FromBody] PostLog postLog) 
         {
             if (postLog == null)
             {
