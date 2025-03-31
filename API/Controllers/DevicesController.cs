@@ -191,6 +191,9 @@ namespace API.Controllers
                 return Unauthorized("Invalid user credentials");
             }
 
+            // 3. Ensure ChangeTracker is clear before checking for duplicates
+            _context.ChangeTracker.Clear();
+
             // 3. Check for existing device
             if (await _context.Devices.AnyAsync(d => d.DeviceId == postDevice.DeviceId))
             {
