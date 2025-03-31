@@ -3,6 +3,7 @@ using System;
 using API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250326095804_enddate")]
+    partial class enddate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -125,37 +128,40 @@ namespace API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<TimeSpan>("ArmedTime")
-                        .HasColumnType("time");
+                    b.Property<TimeOnly>("ArmedTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<string>("DeviceId")
+                    b.Property<int>("DeviceId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DeviceId1")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<TimeSpan>("DisarmedTime")
-                        .HasColumnType("time");
+                    b.Property<TimeOnly>("DisarmedTime")
+                        .HasColumnType("time without time zone");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
 
                     b.Property<bool>("IsTriggered")
                         .HasColumnType("boolean");
 
-                    b.Property<TimeSpan?>("TriggeredTime")
-                        .HasColumnType("time");
+                    b.Property<TimeOnly?>("TriggeredTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DeviceId");
+                    b.HasIndex("DeviceId1");
 
                     b.ToTable("Logs");
                 });
@@ -183,7 +189,7 @@ namespace API.Migrations
                 {
                     b.HasOne("API.Models.Device", "Device")
                         .WithMany()
-                        .HasForeignKey("DeviceId")
+                        .HasForeignKey("DeviceId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
