@@ -2,6 +2,7 @@
 {
     public class Device : Common
     {
+        [Key]
         public string DeviceId { get; set; }
         public bool Status { get; set; }
         public string Name { get; set; }
