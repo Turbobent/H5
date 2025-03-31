@@ -15,6 +15,7 @@
 
     public class SharedPassword
     {
+        [Key]
         public string PasswordId { get; set; }
         public string HashedPassword { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
