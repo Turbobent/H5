@@ -36,14 +36,3 @@ public class TimePart
     public int Hour { get; set; }
     public int Minute { get; set; }
 }
-
-public class LogDto
-{
-    public string DeviceId { get; set; }
-    public DateOnly Date { get; set; }
-    public DateOnly EndDate { get; set; }
-    public TimeOnly ArmedTime { get; set; }
-    public TimeOnly DisarmedTime { get; set; }
-    public bool IsTriggered { get; set; }
-    public TimeOnly? TriggeredTime { get; set; }
-}
