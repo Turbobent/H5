@@ -10,7 +10,7 @@ include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/auth.php");
 // Handle logout
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
   session_destroy();
-  header("Location: " . $baseURL . "pages/login.php");
+  header("Location: " . $baseURL . "login");
   exit;
 }
 ?>
@@ -24,17 +24,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
 
     <div class="flex flex-1 items-center justify-end md:justify-between">
       <nav aria-label="Global" class="hidden md:block">
+        <!-- Hide links if not logged in -->
+        <?php if (is_logged_in()) : ?>
         <ul class="flex items-center gap-6 text-sm">
           <!-- Dashboard -->
           <li>
             <a class="text-gray-500 transition hover:text-gray-500/75"
-              href="<?= $baseURL ?>pages/dashboard.php">Dashboard</a>
+              href="<?= $baseURL ?>dashboard">Dashboard</a>
           </li>
           <!-- Edit Profile -->
           <li>
-            <a class="text-gray-500 transition hover:text-gray-500/75" href="<?= $baseURL ?>pages/edit-profile.php">Edit
+            <a class="text-gray-500 transition hover:text-gray-500/75" href="<?= $baseURL ?>edit-profile">Edit
               Profile</a>
           </li>
+          <?php endif; ?>
         </ul>
       </nav>
 
@@ -43,11 +46,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
       <div class="flex items-center gap-4">
         <div class="sm:flex sm:gap-4">
           <a class="block rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-700"
-            href="<?= $baseURL; ?>pages/login.php">
+            href="<?= $baseURL; ?>login">
             Login
           </a>
           <a class="hidden rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600 transition hover:text-teal-600/75 sm:block"
-            href="<?= $baseURL; ?>pages/signup.php">
+            href="<?= $baseURL; ?>signup">
             Signup
           </a>
         </div>

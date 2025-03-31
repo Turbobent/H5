@@ -2,6 +2,7 @@
 session_start();
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/auth.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/tailwind-styling.php");
 
 // Redirect if not logged in
 require_login();
@@ -22,7 +23,7 @@ $decoded = decode_jwt_payload($_SESSION['user_token']);
 $userId = $decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ?? null;
 
 if (!$userId) {
-    die("Unable to retrieve user ID from token.");
+  die("Unable to retrieve user ID from token.");
 }
 
 // Variables
@@ -54,10 +55,15 @@ if ($http_code === 200) {
 
 // Update the profile
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $email = $_POST['email'];
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+  $email = $_POST['email'];
+  $username = $_POST['username'];
+  $password = $_POST['password'];
+  $confirmPassword = $_POST['confirm_password'];
 
+  // Validate password confirmation (only if user entered a password)
+  if (!empty($password) && $password !== $confirmPassword) {
+      $error_message = "Passwords do not match.";
+  } else {
     $payload = [
         "email" => $email,
         "username" => $username,
@@ -85,7 +91,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
         $error_message = $curl_error ?: "Failed to update profile. Code: $http_code";
     }
+  }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -97,47 +105,48 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <title>Sentinel - Edit Profile</title>
 </head>
 
-<body class="bg-[#6CD9D9]">
+<body class="<?= $defaultBackgroundColor ?>">
 
   <!-- Header -->
   <?php include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/header.php"); ?>
 
   <!-- Main -->
-  <section>
-    <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:min-h-[calc(100vh-140px)] lg:py-0">
-      <h2 class="text-2xl font-bold mb-4 text-gray-800">Edit Profile</h2>
+  <section class="<?= $defaultCenterAndFixedHeight ?>">
+    <div class="<?= $sectionBox ?>">
+      <h2 class="<?= $sectionHeading ?>">Edit Profile</h2>
+      <p class="<?= $sectionParagraph ?>">Update your account details. Leave password fields empty to keep your current password.</p>
 
+      <!-- Flash messages -->
       <?php if (!empty($success_message)) : ?>
-      <p class="text-green-600 text-sm mb-4"><?= htmlspecialchars($success_message) ?></p>
+        <p class="text-green-500 text-center text-sm mb-4"><?= htmlspecialchars($success_message) ?></p>
       <?php endif; ?>
-
       <?php if (!empty($error_message)) : ?>
-      <p class="text-red-600 text-sm mb-4"><?= htmlspecialchars($error_message) ?></p>
+        <p class="text-red-500 text-center text-sm mb-4"><?= htmlspecialchars($error_message) ?></p>
       <?php endif; ?>
 
-      <!-- Edit Profile Form -->
-      <form method="POST" class="space-y-4 w-full max-w-md bg-white p-6 rounded shadow">
+      <!-- Form -->
+      <form method="POST" class="space-y-6">
         <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-          <input type="email" name="email" id="email" value="<?= htmlspecialchars($email) ?>"
-            class="w-full rounded border p-2" required />
+          <label for="email" class="<?= $formLabel ?>">Email</label>
+          <input type="email" name="email" id="email" value="<?= htmlspecialchars($email) ?>" class="<?= $formInput ?>" required>
         </div>
 
         <div>
-          <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-          <input type="text" name="username" id="username" value="<?= htmlspecialchars($username) ?>"
-            class="w-full rounded border p-2" required />
+          <label for="username" class="<?= $formLabel ?>">Username</label>
+          <input type="text" name="username" id="username" value="<?= htmlspecialchars($username) ?>" class="<?= $formInput ?>" required>
         </div>
 
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-700">New Password (optional)</label>
-          <input type="password" name="password" id="password" class="w-full rounded border p-2"
-            placeholder="Enter new password" />
+          <label for="password" class="<?= $formLabel ?>">New Password (optional)</label>
+          <input type="password" name="password" id="password" placeholder="Enter new password" class="<?= $formInput ?>">
         </div>
 
-        <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-          Save Changes
-        </button>
+        <div>
+          <label for="confirm_password" class="<?= $formLabel ?>">Confirm New Password</label>
+          <input type="password" name="confirm_password" id="confirm_password" placeholder="Re-enter new password" class="<?= $formInput ?>">
+        </div>
+
+        <button type="submit" class="<?= $formButton ?>">Save Changes</button>
       </form>
     </div>
   </section>

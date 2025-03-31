@@ -1,10 +1,11 @@
 <?php
 session_start();
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/tailwind-styling.php");
 
 // Redirect logged-in users
 if (isset($_SESSION['user_token'])) {
-    header("Location: " . $baseURL . "pages/dashboard.php");
+    header("Location: " . $baseURL . "dashboard");
     exit;
 }
 
@@ -46,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($http_code == 200 && isset($result['token'])) {
         // Login successful, store token in session
         $_SESSION['user_token'] = $result['token'];
-        header("Location: " . $baseURL . "pages/dashboard.php");
+        header("Location: " . $baseURL . "dashboard");
         exit;
     } else {
         // Handle API errors
@@ -70,13 +71,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <title>Sentinel - Login</title>
 </head>
 
-<body class="bg-[#6CD9D9]">
+<body class="<?= $defaultBackgroundColor ?>">
   <!-- Header -->
   <?php include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/header.php"); ?>
 
   <!-- Main -->
   <section>
-    <div class="flex flex-col items-center justify-center px-6 py-8 mx-auto md:min-h-[calc(100vh-140px)] lg:py-0">
+    <div class="<?= $defaultCenterAndFixedHeight ?>">
       <!-- Images and Sentinel text -->
       <div class="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
         <img class="w-16 h-16 mr-2" src="<?= $baseURL; ?>images/Sentinel-logo.png" alt="logo">
@@ -121,7 +122,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <p class="text-sm font-light text-gray-500 dark:text-gray-400">
               Don’t have an account yet?
-              <a href="<?= $baseURL ?>pages/signup.php"
+              <a href="<?= $baseURL ?>signup"
                 class="font-medium text-primary-600 hover:underline dark:text-primary-500">
                 Sign up
               </a>
