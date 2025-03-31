@@ -22,8 +22,8 @@ namespace API.Controllers
         }
 
         // GET: api/Devices/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Device>> GetDevice(int id)
+        [HttpGet("{deviceId}")]
+        public async Task<ActionResult<Device>> GetDevice(string id)
         {
             var device = await _context.Devices.FindAsync(id);
 
@@ -104,7 +104,7 @@ namespace API.Controllers
         }
 
         [HttpPut("UpdatePassword/{id}")]
-        public async Task<IActionResult> PutNewpassword(string id, UpadtePassword device)
+        public async Task<IActionResult> PutNewpassword(string id, UpdatePassword device)
         {
             // Find the device in the database
             var deviceEntity = await _context.Devices.FindAsync(id);

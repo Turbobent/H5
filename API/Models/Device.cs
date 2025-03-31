@@ -36,7 +36,7 @@
     {
         public bool Status { get; set; }
     }
-    public class UpadtePassword
+    public class UpdatePassword
     {
         public string NewPassword { get; set; }
 
