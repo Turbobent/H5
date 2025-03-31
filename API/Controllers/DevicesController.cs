@@ -37,7 +37,7 @@ namespace API.Controllers
                 return NotFound($"Device with ID {deviceId} not found");
             }
 
-            return Ok(device);  // Explicit Ok() for consistency
+            return Ok(device);
         }
 
         // PUT: api/Devices/5
@@ -71,11 +71,11 @@ namespace API.Controllers
             return NoContent();
         }
 
-        [HttpPut("UpdateStatus/{id}")]
-        public async Task<IActionResult> PutDeviceName(string id, UpdateSta device)
+        [HttpPut("UpdateStatus/{deviceId}")]
+        public async Task<IActionResult> PutDeviceName(string deviceId, UpdateSta device)
         {
             // Find the device in the database
-            var deviceEntity = await _context.Devices.FindAsync(id);
+            var deviceEntity = await _context.Devices.FindAsync(deviceId);
             if (deviceEntity == null)
             {
                 return NotFound(new { message = "Device not found" });
@@ -89,11 +89,11 @@ namespace API.Controllers
             return Ok(new { message = "Status updated successfully" });
         }
 
-        [HttpPut("UpdateName/{id}")]
-        public async Task<IActionResult> PutDeviceName(string id, UpdateName device)
+        [HttpPut("UpdateName/{deviceId}")]
+        public async Task<IActionResult> PutDeviceName(string deviceId, UpdateName device)
         {
             // Find the device in the database
-            var deviceEntity = await _context.Devices.FindAsync(id);
+            var deviceEntity = await _context.Devices.FindAsync(deviceId);
             if (deviceEntity == null)
             {
                 return NotFound(new { message = "Device not found" });
@@ -111,7 +111,7 @@ namespace API.Controllers
         [HttpPut("{deviceId}/password")]
         public async Task<IActionResult> UpdateDevicePassword(
         string deviceId,
-        [FromBody] UpdatePassword request)  // Changed parameter name to 'request'
+        [FromBody] UpdatePassword request)  
         {
             // 1. Validate inputs
             if (string.IsNullOrWhiteSpace(deviceId))
