@@ -164,6 +164,11 @@ namespace API.Controllers
             // 1. Validate input
             var errors = new Dictionary<string, string>();
 
+            if (await _context.Devices.AnyAsync(d => d.DeviceId.ToLower() == postDevice.DeviceId.ToLower()))
+            {
+                return Conflict($"Device {postDevice.DeviceId} already exists");
+            }
+
             if (!Regex.IsMatch(postDevice.Password, @"^\d{4,8}$"))
             {
                 errors["Password"] = "Password must be 4-8 numeric digits";
