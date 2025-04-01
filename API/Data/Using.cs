@@ -12,3 +12,6 @@ global using System.Security.Claims;
 global using System.Text;
 global using API.Models;
 global using API.Data;
+global using RabbitMQ.Client;
+global using RabbitMQ.Client.Events;
+global using System.Text.Json;

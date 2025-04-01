@@ -18,6 +18,55 @@
             return await _context.Logs.ToListAsync();
         }
 
+        [HttpGet("device/{deviceId}")]
+        public async Task<ActionResult<IEnumerable<PostLog>>> GetLogsByDeviceId(string deviceId)
+        {
+            var logs = await _context.Logs
+                .Where(l => l.DeviceId == deviceId)
+                .OrderByDescending(l => l.Date)
+                .Select(l => new PostLog
+                {
+                    DeviceId = l.DeviceId,
+                    Date = new DatePart
+                    {
+                        Year = l.Date.Year,
+                        Month = l.Date.Month,
+                        Day = l.Date.Day
+                    },
+                    EndDate = new DatePart
+                    {
+                        Year = l.EndDate.Year,
+                        Month = l.EndDate.Month,
+                        Day = l.EndDate.Day
+                    },
+                    ArmedTime = new TimePart
+                    {
+                        Hour = l.ArmedTime.Hour,
+                        Minute = l.ArmedTime.Minute
+                    },
+                    DisarmedTime = new TimePart
+                    {
+                        Hour = l.DisarmedTime.Hour,
+                        Minute = l.DisarmedTime.Minute
+                    },
+                    IsTriggered = l.IsTriggered,
+                    TriggeredTime = l.TriggeredTime.HasValue
+                        ? new TimePart
+                        {
+                            Hour = l.TriggeredTime.Value.Hour,
+                            Minute = l.TriggeredTime.Value.Minute
+                        }
+                        : null
+                })
+                .ToListAsync();
+
+            if (!logs.Any())
+            {
+                return NotFound($"No logs found for device with ID: {deviceId}");
+            }
+
+            return Ok(logs);
+        }
         // GET: api/Logs/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Log>> GetLog(int id)
@@ -64,7 +113,7 @@
         }
 
         [HttpPost]
-        public async Task<ActionResult<Log>> PostLog([FromBody] PostLog postLog) // Add [FromBody]
+        public async Task<ActionResult<Log>> PostLog([FromBody] PostLog postLog) 
         {
             if (postLog == null)
             {

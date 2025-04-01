@@ -24,24 +24,20 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.Device", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<string>("DeviceId")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("DeviceId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("SharedPasswordId")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -51,48 +47,28 @@ namespace API.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("Id");
+                    b.HasKey("DeviceId");
+
+                    b.HasIndex("SharedPasswordId");
 
                     b.ToTable("Devices");
                 });
 
-            modelBuilder.Entity("API.Models.Log", b =>
+            modelBuilder.Entity("API.Models.SharedPassword", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<TimeSpan>("ArmedTime")
-                        .HasColumnType("interval");
+                    b.Property<string>("PasswordId")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("HashedPassword")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("DeviceId")
-                        .HasColumnType("integer");
+                    b.HasKey("PasswordId");
 
-                    b.Property<TimeSpan>("DisarmedTime")
-                        .HasColumnType("interval");
-
-                    b.Property<bool>("IsTriggered")
-                        .HasColumnType("boolean");
-
-                    b.Property<TimeSpan?>("TriggeredTime")
-                        .HasColumnType("interval");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DeviceId");
-
-                    b.ToTable("Logs");
+                    b.ToTable("SharedPasswords");
                 });
 
             modelBuilder.Entity("API.Models.User", b =>
@@ -132,53 +108,87 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.User_Device", b =>
                 {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DeviceId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId", "DeviceId");
+
+                    b.HasIndex("DeviceId");
+
+                    b.ToTable("User_Devices");
+                });
+
+            modelBuilder.Entity("Log", b =>
+                {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<TimeOnly>("ArmedTime")
+                        .HasColumnType("time without time zone");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
 
                     b.Property<string>("DeviceId")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("DeviceId1")
-                        .HasColumnType("integer");
+                    b.Property<TimeOnly>("DisarmedTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsTriggered")
+                        .HasColumnType("boolean");
+
+                    b.Property<TimeOnly?>("TriggeredTime")
+                        .HasColumnType("time without time zone");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("DeviceId1");
+                    b.HasIndex("DeviceId");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("User_Devices");
+                    b.ToTable("Logs");
                 });
 
-            modelBuilder.Entity("API.Models.Log", b =>
+            modelBuilder.Entity("API.Models.Device", b =>
                 {
-                    b.HasOne("API.Models.Device", "Device")
-                        .WithMany()
-                        .HasForeignKey("DeviceId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("API.Models.SharedPassword", "SharedPassword")
+                        .WithMany("Devices")
+                        .HasForeignKey("SharedPasswordId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Device");
+                    b.Navigation("SharedPassword");
                 });
 
             modelBuilder.Entity("API.Models.User_Device", b =>
                 {
                     b.HasOne("API.Models.Device", "Device")
                         .WithMany()
-                        .HasForeignKey("DeviceId1")
+                        .HasForeignKey("DeviceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -191,6 +201,22 @@ namespace API.Migrations
                     b.Navigation("Device");
 
                     b.Navigation("user");
+                });
+
+            modelBuilder.Entity("Log", b =>
+                {
+                    b.HasOne("API.Models.Device", "Device")
+                        .WithMany()
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Device");
+                });
+
+            modelBuilder.Entity("API.Models.SharedPassword", b =>
+                {
+                    b.Navigation("Devices");
                 });
 #pragma warning restore 612, 618
         }

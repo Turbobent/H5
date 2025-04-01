@@ -28,18 +28,21 @@ namespace API.Controllers
             return await _context.User_Devices.ToListAsync();
         }
 
-        // GET: api/User_Device/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User_Device>> GetUser_Device(int id)
+        // GET: api/UserDevices/device-ids/5
+        [HttpGet("device-ids/{userId}")]
+        public async Task<ActionResult<IEnumerable<string>>> GetUserDeviceIds(int userId)
         {
-            var user_Device = await _context.User_Devices.FindAsync(id);
+            var deviceIds = await _context.User_Devices
+                .Where(ud => ud.UserId == userId)
+                .Select(ud => ud.DeviceId)
+                .ToListAsync();
 
-            if (user_Device == null)
+            if (!deviceIds.Any())
             {
-                return NotFound();
+                return NotFound($"No devices found for user with ID: {userId}");
             }
 
-            return user_Device;
+            return Ok(deviceIds);
         }
 
         // PUT: api/User_Device/5
