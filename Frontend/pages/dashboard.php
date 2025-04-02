@@ -101,25 +101,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action'])) {
         <ul class="text-white space-y-4 text-sm text-left">
           <?php foreach ($devices as $deviceId): ?>
           <?php
-      $deviceDetailUrl = $baseAPI . "Devices/" . urlencode($deviceId);
-      $ch = curl_init($deviceDetailUrl);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer " . $_SESSION['user_token']
-      ]);
-      $detailResponse = curl_exec($ch);
-      $detailCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-      curl_close($ch);
+            $deviceDetailUrl = $baseAPI . "Devices/" . urlencode($deviceId);
+            $ch = curl_init($deviceDetailUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+              "Authorization: Bearer " . $_SESSION['user_token']
+            ]);
+            $detailResponse = curl_exec($ch);
+            $detailCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
 
-      if ($detailCode === 200) {
-        $device = json_decode($detailResponse, true);
-        $deviceName = htmlspecialchars($device['name'] ?? 'Unnamed Device');
-        $deviceStatus = isset($device['status']) && $device['status'] ? '🔐 Armed' : '🔓 Disarmed';
-    ?>
+            if ($detailCode === 200) {
+              $device = json_decode($detailResponse, true);
+              $deviceName = htmlspecialchars($device['name'] ?? 'Unnamed Device');
+              $deviceStatus = isset($device['status']) && $device['status'] ? '🔐 Armed' : '🔓 Disarmed';
+          ?>
           <li class="bg-gray-800 p-4 rounded shadow">
             <p><strong>Name:</strong> <?= $deviceName ?></p>
             <p><strong>Status:</strong> <?= $deviceStatus ?></p>
             <p class="text-gray-400 text-xs">ID: <?= htmlspecialchars($device['deviceId']) ?></p>
+            <a href="<?= $baseURL ?>edit-device?deviceId=<?= urlencode($device['deviceId']) ?>"
+              class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1 rounded">
+              Edit
+            </a>
           </li>
           <?php } else { ?>
           <li class="text-red-400">Failed to load device info for ID: <?= htmlspecialchars($deviceId) ?></li>
