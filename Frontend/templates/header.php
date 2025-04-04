@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
 
 <header class="bg-[#282828]">
   <div class="mx-auto flex h-[70px] max-w-screen-xl items-center gap-8 px-4 sm:px-6 lg:px-8">
-    <a class="block text-teal-600" href="<?= $baseURL; ?>">
+    <a class="block text-teal-600" href="<?= $baseURL . (is_logged_in() ? 'dashboard' : 'index.php'); ?>">
       <span class="sr-only">Home</span>
       <img class="w-12 h-12 mr-2" src="<?= $baseURL; ?>images/Sentinel-logo.png" alt="logo">
     </a>
@@ -29,8 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['logout'])) {
         <ul class="flex items-center gap-6 text-sm">
           <!-- Dashboard -->
           <li>
-            <a class="text-gray-500 transition hover:text-gray-500/75"
-              href="<?= $baseURL ?>dashboard">Dashboard</a>
+            <a class="text-gray-500 transition hover:text-gray-500/75" href="<?= $baseURL ?>dashboard">Dashboard</a>
           </li>
           <!-- Edit Profile -->
           <li>

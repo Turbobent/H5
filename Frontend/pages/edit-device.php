@@ -6,7 +6,6 @@ include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/tailwind-styling
 
 require_login();
 
-// Get device ID from query string
 $deviceId = $_GET['deviceId'] ?? null;
 
 if (!$deviceId) {
@@ -17,7 +16,7 @@ $device = null;
 $error_message = "";
 $success_message = "";
 
-// GET device info
+// GET device info (same as before)
 $api_url = $baseAPI . "Devices/" . urlencode($deviceId);
 
 $ch = curl_init($api_url);
@@ -38,15 +37,12 @@ if ($http_code === 200) {
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $updated_name = $_POST['name'];
-  $updated_password = $_POST['password'];
 
   $payload = json_encode([
-    "name" => $updated_name,
-    "password" => $updated_password,
-    "deviceId" => $device['deviceId'] // required, even if unchanged
+    "newName" => $updated_name
   ]);
 
-  $ch = curl_init($baseAPI . "Devices/" . urlencode($deviceId));
+  $ch = curl_init($baseAPI . "Devices/UpdateName/" . urlencode($deviceId));
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
   curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
@@ -61,7 +57,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   curl_close($ch);
 
   if ($updateCode === 200 || $updateCode === 204) {
-    $success_message = "Device updated successfully!";
+    $success_message = "Device name updated successfully!";
+    // Optional: Refresh device name
+    $device['name'] = $updated_name;
   } else {
     $error_message = $curl_error ?: "Failed to update device. Code: $updateCode";
   }
@@ -96,11 +94,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
           <label for="name" class="<?= $formLabel ?>">Device Name</label>
           <input type="text" name="name" id="name" class="<?= $formInput ?>"
             value="<?= htmlspecialchars($device['name']) ?>" required>
-        </div>
-        <div>
-          <label for="password" class="<?= $formLabel ?>">New Password</label>
-          <input type="password" name="password" id="password" class="<?= $formInput ?>"
-            placeholder="Leave blank to keep current">
         </div>
 
         <button type="submit" class="<?= $formButton ?>">Update Device</button>
