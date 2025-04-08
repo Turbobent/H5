@@ -21,13 +21,30 @@ namespace API.Controllers
             return await _context.Devices.ToListAsync();
         }
 
-        // GET: api/Devices/ABC123
+        [Authorize]
         [HttpGet("{deviceId}")]
         public async Task<ActionResult<Device>> GetDevice(string deviceId)
         {
             if (string.IsNullOrWhiteSpace(deviceId))
             {
                 return BadRequest("Device ID is required");
+            }
+
+            // Get the authenticated user's ID from the JWT claims
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized("User ID is missing or invalid in token.");
+            }
+
+            // Check if the user owns the device
+            var userOwnsDevice = await _context.User_Devices
+                .AnyAsync(ud => ud.UserId == userId && ud.DeviceId == deviceId);
+
+            if (!userOwnsDevice)
+            {
+                return Forbid("You do not have permission to access this device.");
             }
 
             var device = await _context.Devices.FindAsync(deviceId);
