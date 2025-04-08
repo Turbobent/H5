@@ -17,13 +17,15 @@
         {
             return await _context.Logs.ToListAsync();
         }
-
+        [Authorize]
         [HttpGet("device/{deviceId}")]
         public async Task<ActionResult<IEnumerable<PostLog>>> GetLogsByDeviceId(string deviceId)
         {
             var logs = await _context.Logs
                 .Where(l => l.DeviceId == deviceId)
                 .OrderByDescending(l => l.Date)
+                //so swagger dont crash if it gets all it crahses
+                .Take(25)
                 .Select(l => new PostLog
                 {
                     DeviceId = l.DeviceId,
@@ -132,7 +134,9 @@
                     IsTriggered = postLog.IsTriggered,
                     TriggeredTime = postLog.TriggeredTime != null
                         ? new TimeOnly(postLog.TriggeredTime.Hour, postLog.TriggeredTime.Minute)
-                        : null
+                        : null,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Logs.Add(log);

@@ -16,17 +16,15 @@ namespace API.Migrations
                 name: "Devices",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    DeviceId = table.Column<string>(type: "text", nullable: false),
                     Status = table.Column<bool>(type: "boolean", nullable: false),
-                    DeviceId = table.Column<int>(type: "integer", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Devices", x => x.Id);
+                    table.PrimaryKey("PK_Devices", x => x.DeviceId);
                 });
 
             migrationBuilder.CreateTable(
@@ -53,8 +51,9 @@ namespace API.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    DeviceId = table.Column<int>(type: "integer", nullable: false),
+                    DeviceId = table.Column<string>(type: "text", nullable: false),
                     Date = table.Column<DateOnly>(type: "date", nullable: false),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: false),
                     ArmedTime = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
                     DisarmedTime = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
                     IsTriggered = table.Column<bool>(type: "boolean", nullable: false),
@@ -69,7 +68,7 @@ namespace API.Migrations
                         name: "FK_Logs_Devices_DeviceId",
                         column: x => x.DeviceId,
                         principalTable: "Devices",
-                        principalColumn: "Id",
+                        principalColumn: "DeviceId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -77,21 +76,19 @@ namespace API.Migrations
                 name: "User_Devices",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    DeviceId = table.Column<int>(type: "integer", nullable: false),
+                    DeviceId = table.Column<string>(type: "text", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_User_Devices", x => x.Id);
+                    table.PrimaryKey("PK_User_Devices", x => new { x.UserId, x.DeviceId });
                     table.ForeignKey(
                         name: "FK_User_Devices_Devices_DeviceId",
                         column: x => x.DeviceId,
                         principalTable: "Devices",
-                        principalColumn: "Id",
+                        principalColumn: "DeviceId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_User_Devices_Users_UserId",
@@ -110,11 +107,6 @@ namespace API.Migrations
                 name: "IX_User_Devices_DeviceId",
                 table: "User_Devices",
                 column: "DeviceId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_User_Devices_UserId",
-                table: "User_Devices",
-                column: "UserId");
         }
 
         /// <inheritdoc />

@@ -30,14 +30,7 @@ namespace API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("SharedPasswordId")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -49,26 +42,7 @@ namespace API.Migrations
 
                     b.HasKey("DeviceId");
 
-                    b.HasIndex("SharedPasswordId");
-
                     b.ToTable("Devices");
-                });
-
-            modelBuilder.Entity("API.Models.SharedPassword", b =>
-                {
-                    b.Property<string>("PasswordId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("HashedPassword")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("PasswordId");
-
-                    b.ToTable("SharedPasswords");
                 });
 
             modelBuilder.Entity("API.Models.User", b =>
@@ -117,9 +91,6 @@ namespace API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -160,8 +131,8 @@ namespace API.Migrations
                     b.Property<bool>("IsTriggered")
                         .HasColumnType("boolean");
 
-                    b.Property<TimeOnly?>("TriggeredTime")
-                        .HasColumnType("time without time zone");
+                    b.Property<DateTime?>("TriggeredTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -171,17 +142,6 @@ namespace API.Migrations
                     b.HasIndex("DeviceId");
 
                     b.ToTable("Logs");
-                });
-
-            modelBuilder.Entity("API.Models.Device", b =>
-                {
-                    b.HasOne("API.Models.SharedPassword", "SharedPassword")
-                        .WithMany("Devices")
-                        .HasForeignKey("SharedPasswordId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("SharedPassword");
                 });
 
             modelBuilder.Entity("API.Models.User_Device", b =>
@@ -212,11 +172,6 @@ namespace API.Migrations
                         .IsRequired();
 
                     b.Navigation("Device");
-                });
-
-            modelBuilder.Entity("API.Models.SharedPassword", b =>
-                {
-                    b.Navigation("Devices");
                 });
 #pragma warning restore 612, 618
         }

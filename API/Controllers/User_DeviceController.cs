@@ -45,48 +45,6 @@ namespace API.Controllers
             return Ok(deviceIds);
         }
 
-        // PUT: api/User_Device/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser_Device(int id, User_Device user_Device)
-        {
-            if (id != user_Device.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user_Device).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!User_DeviceExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/User_Device
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<User_Device>> PostUser_Device(User_Device user_Device)
-        {
-            _context.User_Devices.Add(user_Device);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUser_Device", new { id = user_Device.Id }, user_Device);
-        }
-
         // DELETE: api/User_Device/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser_Device(int id)
@@ -103,9 +61,6 @@ namespace API.Controllers
             return NoContent();
         }
 
-        private bool User_DeviceExists(int id)
-        {
-            return _context.User_Devices.Any(e => e.Id == id);
-        }
+       
     }
 }

@@ -28,6 +28,8 @@ namespace API
 
             });
 
+            builder.Services.AddHostedService<RabbitMQService>();
+
             builder.Services.AddControllers();
 
             builder.Services.AddEndpointsApiExplorer();
