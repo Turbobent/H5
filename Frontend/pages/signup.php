@@ -5,7 +5,7 @@ include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/tailwind-styling
 
 // Redirect logged-in users
 if (isset($_SESSION['user_token'])) {
-    header("Location: " . $baseURL . "pages/dashboard.php");
+    header("Location: " . $baseURL . "dashboard");
     exit;
 }
 

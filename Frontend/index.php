@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <?php include_once('templates/links.php') ?>
   <title>Sentinel - Advanced Home Security</title>
+  <meta name="description" content="Sentinel is your all-in-one smart home security solution. Protect your home 24/7 with advanced alarm devices, real-time alerts, and effortless setup. Start securing your home today!">
 </head>
 
 <body class="<?= $defaultBackgroundColor ?>">

@@ -30,6 +30,9 @@ curl_close($ch);
 
 if ($http_code === 200) {
   $device = json_decode($response, true);
+} elseif ($http_code === 403 || $http_code === 500) {
+  $responseData = json_decode($response, true);
+  $error_message = $responseData['message'] ?? "You do not have permission to access this device.";
 } else {
   $error_message = "Failed to load device information. Code: $http_code";
 }
@@ -56,12 +59,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $curl_error = curl_error($ch);
   curl_close($ch);
 
+  if ($updateCode === 403 || $updateCode === 500) {
+    $error_message = "test";
+  }
+
   if ($updateCode === 200 || $updateCode === 204) {
     $success_message = "Device name updated successfully!";
     // Optional: Refresh device name
     $device['name'] = $updated_name;
   } else {
-    $error_message = $curl_error ?: "Failed to update device. Code: $updateCode";
+    $error_message = "Failed to load device information. Code: $http_code";
   }
 }
 ?>

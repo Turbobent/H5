@@ -1,7 +1,7 @@
 <?php
 // Global layout
 $defaultBackgroundColor = 'bg-[#6CD9D9]';
-$defaultCenterAndFixedHeight = 'flex flex-col items-center justify-center px-6 py-8 mx-auto md:min-h-[calc(100vh-140px)] lg:py-0';
+$defaultCenterAndFixedHeight = 'flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-[calc(100vh-140px)]';
 
 // Section containers
 $sectionBox = 'bg-gray-900 py-8 lg:py-8 px-4 rounded mx-auto max-w-screen-md';
