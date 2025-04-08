@@ -4,6 +4,10 @@
 #include <Arduino_MKRIoTCarrier.h>
 #include <SPI.h>
 #include <WiFiNINA.h>
+#include <PubSubClient.h> // Inkluderer PubSubClient-biblioteket
+#include <ArduinoJson.h>
+#include <WiFiUdp.h>
+#include <NTPClient.h>
 
 #include "config.h" // Include config file
 
@@ -25,15 +29,19 @@ private:
     // LED
     bool ledShowOn = false;
 
-    // Motion Detection
-    int motionValue = 0;
-    bool motionDetected = false;
+    // Movement Detection
+    int movementValue = 0;
+    bool movementDetected = false;
     static const int motionPin = A6;
 
+    // Movement Count
+    long lastMovementCheck = 0;  // Track last check time
+    int movementCount = 0;  // Movement count
+
     // Factory Settings
-    int motionDetectionDelay = 5000; 
-    int motionDetectionSensitivity = 200;
-    int motionDetectionDistance = 200;
+    int movementDetectionDelay = 5000; 
+    int movementDetectionSensitivity = 200;
+    int movementDetectionDistance = 200;
     int alarmDuration = 300000; 
 
     // Acceleration
@@ -43,18 +51,12 @@ private:
     int accelerationDetectionDelay = 5000; 
     int accelerationDetectionSensitivity = 200;
 
-    float accelerationValue = 0;
     bool isMoving = false;
 
     // Device
     String deviceID;
 
 public:
-    // Change function return types to match the ones in the implementation file
-    long lastMovementCheck;
-    long startTime;
-    int movementCount;
-
     // Global state variables for toggle handling
     bool armButtonPressed = false;
     bool disarmButtonPressed = false;
@@ -69,10 +71,10 @@ public:
     Sentinel(const char *ssid, const char *password);
     void begin();
     float readMovement();  // Return type changed to int
-    void checkMotion();
+    void checkMovement();
     void armSystem();
     void disarmSystem();
-    String boolToString(bool isArmed, bool motionDetected);
+    String boolToString(bool isArmed, bool movementDetected);
 };
 
 #endif

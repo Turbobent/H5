@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
 
     // API URL
-    $api_url = "https://sentinal-api.mercantec.tech/api/Users/login";
+    $api_url = $baseAPI . "Users/login";
 
     // Prepare API request data
     $data = json_encode([

@@ -6,3 +6,7 @@ RewriteRule ^dashboard$ pages/dashboard.php [L]
 RewriteRule ^edit-profile$ pages/edit-profile.php [L]
 RewriteRule ^about$ pages/about.php [L]
 RewriteRule ^contact$ pages/contact.php [L]
+RewriteRule ^register-device$ pages/register-device.php [L]
+RewriteRule ^edit-device$ pages/edit-device.php [L]
+
+DirectoryIndex index.php

@@ -66,13 +66,13 @@ void loop() {
   // Opdater tid før JSON generering
   timeClient.update();
   
-  Serial.println("------ Ny måling ------");
-  Serial.print("Tidsstempel: ");
+  Serial.println("------ New Scanning ------");
+  Serial.print("Timestamp: ");
   Serial.println(timeClient.getFormattedTime());
   
   // Læs sensordata
   float movementValue = sentinel.readMovement();
-  Serial.print("Bevægelse registreret: ");
+  Serial.print("Movement Registered: ");
   Serial.println(movementValue);
   
   // Opdater display
@@ -80,19 +80,19 @@ void loop() {
   
   // Movement
   sentinel.carrier.display.setTextSize(2);
-  sentinel.carrier.display.setCursor(30, 30);
+  sentinel.carrier.display.setCursor(30, 60);
   sentinel.carrier.display.print("Movement: ");
   sentinel.carrier.display.print(movementValue, 1);
   
   // People
-  sentinel.carrier.display.setCursor(30, 90);
-  sentinel.carrier.display.print("People: ");
-  //carrier.display.print(movementCount, 1);
+  //sentinel.carrier.display.setCursor(30, 120);
+  //sentinel.carrier.display.print("People: ");
+  //sentinel.carrier.display.print(movementCount, 1);
   
   // Acceleration
-  sentinel.carrier.display.setCursor(30, 150);
-  sentinel.carrier.display.print("Acceleration: ");
-  //carrier.display.print(accelerationValue);
+  //sentinel.carrier.display.setCursor(30, 150);
+  //sentinel.carrier.display.print("Acceleration: ");
+  //sentinel.carrier.display.print(accelerationValue);
   
   // Tilføj data til JSON dokument
   StaticJsonDocument<200> doc;
@@ -124,5 +124,3 @@ void loop() {
   // Vent 5 sekunder før næste måling
   delay(5000);
 }
-
- 

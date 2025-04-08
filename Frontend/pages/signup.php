@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error_message = "Passwords do not match.";
     } else {
         // API URL
-        $api_url = "https://sentinal-api.mercantec.tech/api/Users/signup";
+        $api_url = $baseAPI . "Users/signup";
 
         // Prepare API request data
         $data = json_encode([
@@ -147,8 +147,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <p class="text-sm font-light text-gray-500 dark:text-gray-400">
               Already have an account?
-              <a href="<?= $baseURL ?>login"
-                class="font-medium text-primary-600 hover:underline dark:text-primary-500">
+              <a href="<?= $baseURL ?>login" class="font-medium text-primary-600 hover:underline dark:text-primary-500">
                 Login here
               </a>
             </p>
