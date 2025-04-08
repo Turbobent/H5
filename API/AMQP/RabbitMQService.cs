@@ -8,26 +8,38 @@ public class RabbitMQService : IHostedService
     private readonly IServiceScopeFactory _scopeFactory;
 
     // Tilføj denne klasse for at repræsentere OLC-dataene
-    private class ArduinoData
-    {
-        public string DeviceId { get; set; }
 
-        public DatePart Date { get; set; }
-        public DatePart EndDate { get; set; }
-
-        public TimePart ArmedTime { get; set; }
-        public TimePart DisarmedTime { get; set; }
-
-        public bool IsTriggered { get; set; }
-        public TimePart? TriggeredTime { get; set; }
-    }
-  
     public RabbitMQService(
         ILogger<RabbitMQService> logger,
         IServiceScopeFactory scopeFactory)
     {
         _logger = logger;
         _scopeFactory = scopeFactory;
+    }
+
+    public class IncomingData
+    {
+        public long Timestamp { get; set; }
+        public int Movement { get; set; }
+        public int TotalAcceleration { get; set; }
+    }
+
+    public DateOnly ConvertTimestampToDate(object timestamp)
+    {
+        // If you're getting a string timestamp
+        if (timestamp is string timestampStr)
+        {
+            DateTime dateTime = DateTime.Parse(timestampStr, null, System.Globalization.DateTimeStyles.RoundtripKind);
+            return DateOnly.FromDateTime(dateTime);
+        }
+        // If you're getting a Unix timestamp as long (seconds)
+        if (timestamp is long unix)
+        {
+            DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unix).DateTime;
+            return DateOnly.FromDateTime(dateTime);
+        }
+
+        throw new ArgumentException("Unsupported timestamp format");
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -43,7 +55,7 @@ public class RabbitMQService : IHostedService
                 RequestedHeartbeat = TimeSpan.FromSeconds(600)
             };
 
-            _connection = factory.CreateConnection();  
+            _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
             _channel.ExchangeDeclare("amq.topic", ExchangeType.Topic, true);
@@ -76,10 +88,33 @@ public class RabbitMQService : IHostedService
                         PropertyNameCaseInsensitive = true
                     };
 
-                    var olcData = JsonSerializer.Deserialize<ArduinoData>(message, options);
+                    var olcData = JsonSerializer.Deserialize<PostLog>(message, options);
 
                     if (olcData != null)
                     {
+                        IncomingData incomingData = new();
+                        var isTriggered = incomingData.Movement > 0;
+
+                        // Check if Date is null, and use current date as fallback if it is
+                        DateOnly timestamp;
+                        if (olcData.Date != null)
+                        {
+                            // Use Date from the PostLog object
+                            var dateTime = new DateTime(olcData.Date.Year, olcData.Date.Month, olcData.Date.Day);
+                            timestamp = ConvertTimestampToDate(dateTime);
+                        }
+                        else
+                        {
+                            // Fallback to current date if Date is null
+                            timestamp = DateOnly.FromDateTime(DateTime.Now);
+                            _logger.LogWarning("OLC data Date is null, using current date as fallback.");
+                        }
+
+                        _logger.LogInformation($"Movement: {incomingData.Movement}, TotalAcceleration: {incomingData.TotalAcceleration}, IsTriggered: {isTriggered}");
+
+                        // Log timestamp for debugging
+                        _logger.LogInformation($"Timestamp: {timestamp}");
+
                         // Gem data i database
                         using (var scope = _scopeFactory.CreateScope())
                         {
@@ -94,12 +129,13 @@ public class RabbitMQService : IHostedService
                                 EndDate = new DateOnly(log.EndDate.Year, log.EndDate.Month, log.EndDate.Day),
                                 ArmedTime = new TimeOnly(log.ArmedTime.Hour, log.ArmedTime.Minute),
                                 DisarmedTime = new TimeOnly(log.DisarmedTime.Hour, log.DisarmedTime.Minute),
-                                IsTriggered = log.IsTriggered,
+                                IsTriggered = isTriggered,  // Set based on movement
                                 TriggeredTime = log.TriggeredTime.HasValue
                                 ? new TimeOnly(log.TriggeredTime.Value.Hour, log.TriggeredTime.Value.Minute)
-                                : null
+                                : null,
+                                UpdatedAt = DateTime.UtcNow,
+                                CreatedAt = DateTime.UtcNow
                             };
-
 
                             // Tilføj til database og gem
                             await dbContext.Logs.AddAsync(newLog);

@@ -1,6 +1,9 @@
 ﻿public class Log : Common
 {
+ public int Id { get; set; }
     public string DeviceId { get; set; }
+    [ForeignKey("DeviceId")]
+
     public Device Device { get; set; }
     public DateOnly Date { get; set; }
     public DateOnly EndDate { get; set; }

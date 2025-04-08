@@ -132,7 +132,9 @@
                     IsTriggered = postLog.IsTriggered,
                     TriggeredTime = postLog.TriggeredTime != null
                         ? new TimeOnly(postLog.TriggeredTime.Hour, postLog.TriggeredTime.Minute)
-                        : null
+                        : null,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Logs.Add(log);

@@ -15,3 +15,4 @@ global using API.Data;
 global using RabbitMQ.Client;
 global using RabbitMQ.Client.Events;
 global using System.Text.Json;
+global using API.Services;
