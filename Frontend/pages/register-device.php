@@ -15,12 +15,10 @@ $error_message = "";
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $name = $_POST['name'];
   $deviceId = $_POST['deviceId'];
-  $password = $_POST['password'];
 
   $data = json_encode([
     "name" => $name,
     "deviceId" => $deviceId,
-    "password" => $password
   ]);
 
   $ch = curl_init($baseAPI . "Devices");
@@ -37,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $curl_error = curl_error($ch);
   curl_close($ch);
 
-  if ($http_code === 201) {
+  if ($http_code === 200) {
     $success_message = "Device successfully registered!";
   } else {
     $error_message = $curl_error ?: "Something went wrong. Code: $http_code";
@@ -77,10 +75,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <div>
           <label for="deviceId" class="<?= $formLabel ?>">Device ID</label>
           <input type="text" name="deviceId" id="deviceId" class="<?= $formInput ?>" required placeholder="ABC123">
-        </div>
-        <div>
-          <label for="password" class="<?= $formLabel ?>">Device Password</label>
-          <input type="password" name="password" id="password" class="<?= $formInput ?>" required>
         </div>
         <button type="submit" class="<?= $formButton ?>">Register Device</button>
       </form>
