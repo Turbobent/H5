@@ -1,7 +1,6 @@
 <?php
-session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/auth.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/tailwind-styling.php");
 
 require_login();
@@ -82,52 +81,54 @@ $logsToDisplay = array_slice($logs, $start, $logsPerPage);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sentinel – Device Logs</title>
 </head>
+
 <body class="<?= $defaultBackgroundColor ?>">
 
-<?php include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/header.php"); ?>
+  <?php include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/header.php"); ?>
 
-<section>
-  <div class="<?= $defaultCenterAndFixedHeight ?>">
-    <div class="<?= $sectionBox ?> w-full">
-      <h2 class="<?= $sectionHeading ?>">Device Logs</h2>
+  <section>
+    <div class="<?= $defaultCenterAndFixedHeight ?>">
+      <div class="<?= $sectionBox ?> w-full">
+        <h2 class="<?= $sectionHeading ?>">Device Logs</h2>
 
-      <?php if (!empty($deviceIds)) : ?>
-      <form method="GET" class="mb-6 text-white grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Filter by device -->
-        <div>
-          <label for="deviceId" class="block text-sm font-medium mb-2">Filter by device:</label>
-          <select name="deviceId" id="deviceId" onchange="this.form.submit()"
-            class="w-full p-2 rounded bg-gray-700 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <option value="">All Devices</option>
-            <?php foreach ($deviceIds as $id): ?>
+        <?php if (!empty($deviceIds)) : ?>
+        <form method="GET" class="mb-6 text-white grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Filter by device -->
+          <div>
+            <label for="deviceId" class="block text-sm font-medium mb-2">Filter by device:</label>
+            <select name="deviceId" id="deviceId" onchange="this.form.submit()"
+              class="w-full p-2 rounded bg-gray-700 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <option value="">All Devices</option>
+              <?php foreach ($deviceIds as $id): ?>
               <option value="<?= $id ?>" <?= $selectedDevice === $id ? 'selected' : '' ?>>
                 <?= htmlspecialchars($id) ?>
               </option>
-            <?php endforeach; ?>
-          </select>
-        </div>
+              <?php endforeach; ?>
+            </select>
+          </div>
 
-        <!-- Filter by status -->
-        <div>
-          <label for="status" class="block text-sm font-medium mb-2">Filter by status:</label>
-          <select name="status" id="status" onchange="this.form.submit()"
-            class="w-full p-2 rounded bg-gray-700 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400">
-            <option value="">All</option>
-            <option value="triggered" <?= $statusFilter === "triggered" ? 'selected' : '' ?>>🚨 Triggered</option>
-            <option value="normal" <?= $statusFilter === "normal" ? 'selected' : '' ?>>✅ Normal</option>
-          </select>
-        </div>
-      </form>
-      <?php endif; ?>
+          <!-- Filter by status -->
+          <div>
+            <label for="status" class="block text-sm font-medium mb-2">Filter by status:</label>
+            <select name="status" id="status" onchange="this.form.submit()"
+              class="w-full p-2 rounded bg-gray-700 text-white border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <option value="">All</option>
+              <option value="triggered" <?= $statusFilter === "triggered" ? 'selected' : '' ?>>🚨 Triggered</option>
+              <option value="normal" <?= $statusFilter === "normal" ? 'selected' : '' ?>>✅ Normal</option>
+            </select>
+          </div>
+        </form>
+        <?php endif; ?>
 
-      <?php if (empty($logsToDisplay)) : ?>
+        <?php if (empty($logsToDisplay)) : ?>
         <p class="<?= $sectionParagraph ?>">No logs found for your filters.</p>
-      <?php else : ?>
+        <?php else : ?>
         <ul class="space-y-4 text-white text-sm">
           <?php foreach ($logsToDisplay as $log): ?>
           <li class="bg-gray-800 p-4 rounded shadow">
@@ -165,11 +166,12 @@ $logsToDisplay = array_slice($logs, $start, $logsPerPage);
           <?php endfor; ?>
         </div>
         <?php endif; ?>
-      <?php endif; ?>
+        <?php endif; ?>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<?php include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/footer.php"); ?>
+  <?php include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/footer.php"); ?>
 </body>
+
 </html>

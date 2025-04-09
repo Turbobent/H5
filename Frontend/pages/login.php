@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Prepare API request data
     $data = json_encode([
-        "username" => $username, // Correct key for API
+        "username" => $username,
         "password" => $password
     ]);
 

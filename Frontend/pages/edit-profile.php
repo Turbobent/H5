@@ -1,7 +1,6 @@
 <?php
-session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/auth.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/tailwind-styling.php");
 
 // Redirect if not logged in
@@ -114,36 +113,41 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <section class="<?= $defaultCenterAndFixedHeight ?>">
     <div class="<?= $sectionBox ?>">
       <h2 class="<?= $sectionHeading ?>">Edit Profile</h2>
-      <p class="<?= $sectionParagraph ?>">Update your account details. Leave password fields empty to keep your current password.</p>
+      <p class="<?= $sectionParagraph ?>">Update your account details. Leave password fields empty to keep your current
+        password.</p>
 
       <!-- Flash messages -->
       <?php if (!empty($success_message)) : ?>
-        <p class="text-green-500 text-center text-sm mb-4"><?= htmlspecialchars($success_message) ?></p>
+      <p class="text-green-500 text-center text-sm mb-4"><?= htmlspecialchars($success_message) ?></p>
       <?php endif; ?>
       <?php if (!empty($error_message)) : ?>
-        <p class="text-red-500 text-center text-sm mb-4"><?= htmlspecialchars($error_message) ?></p>
+      <p class="text-red-500 text-center text-sm mb-4"><?= htmlspecialchars($error_message) ?></p>
       <?php endif; ?>
 
       <!-- Form -->
       <form method="POST" class="space-y-6">
         <div>
           <label for="email" class="<?= $formLabel ?>">Email</label>
-          <input type="email" name="email" id="email" value="<?= htmlspecialchars($email) ?>" class="<?= $formInput ?>" required>
+          <input type="email" name="email" id="email" value="<?= htmlspecialchars($email) ?>" class="<?= $formInput ?>"
+            required>
         </div>
 
         <div>
           <label for="username" class="<?= $formLabel ?>">Username</label>
-          <input type="text" name="username" id="username" value="<?= htmlspecialchars($username) ?>" class="<?= $formInput ?>" required>
+          <input type="text" name="username" id="username" value="<?= htmlspecialchars($username) ?>"
+            class="<?= $formInput ?>" required>
         </div>
 
         <div>
           <label for="password" class="<?= $formLabel ?>">New Password (optional)</label>
-          <input type="password" name="password" id="password" placeholder="Enter new password" class="<?= $formInput ?>">
+          <input type="password" name="password" id="password" placeholder="Enter new password"
+            class="<?= $formInput ?>">
         </div>
 
         <div>
           <label for="confirm_password" class="<?= $formLabel ?>">Confirm New Password</label>
-          <input type="password" name="confirm_password" id="confirm_password" placeholder="Re-enter new password" class="<?= $formInput ?>">
+          <input type="password" name="confirm_password" id="confirm_password" placeholder="Re-enter new password"
+            class="<?= $formInput ?>">
         </div>
 
         <button type="submit" class="<?= $formButton ?>">Save Changes</button>
