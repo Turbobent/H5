@@ -7,8 +7,6 @@ public class RabbitMQService : IHostedService
     private readonly ILogger<RabbitMQService> _logger;
     private readonly IServiceScopeFactory _scopeFactory;
 
-    // Tilføj denne klasse for at repræsentere OLC-dataene
-
     public RabbitMQService(
         ILogger<RabbitMQService> logger,
         IServiceScopeFactory scopeFactory)
@@ -21,7 +19,6 @@ public class RabbitMQService : IHostedService
     {
         public long Timestamp { get; set; }
         public int Movement { get; set; }
-        public int TotalAcceleration { get; set; }
     }
 
     public DateOnly ConvertTimestampToDate(object timestamp)
@@ -110,7 +107,7 @@ public class RabbitMQService : IHostedService
                             _logger.LogWarning("OLC data Date is null, using current date as fallback.");
                         }
 
-                        _logger.LogInformation($"Movement: {incomingData.Movement}, TotalAcceleration: {incomingData.TotalAcceleration}, IsTriggered: {isTriggered}");
+                        _logger.LogInformation($"Movement: {incomingData.Movement}");
 
                         // Log timestamp for debugging
                         _logger.LogInformation($"Timestamp: {timestamp}");
