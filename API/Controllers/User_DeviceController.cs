@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using API.Data;
-using API.Models;
-
-namespace API.Controllers
+﻿namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -43,24 +33,6 @@ namespace API.Controllers
             }
 
             return Ok(deviceIds);
-        }
-
-        // DELETE: api/User_Device/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser_Device(int id)
-        {
-            var user_Device = await _context.User_Devices.FindAsync(id);
-            if (user_Device == null)
-            {
-                return NotFound();
-            }
-
-            _context.User_Devices.Remove(user_Device);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-       
+        }   
     }
 }
