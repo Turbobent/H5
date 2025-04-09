@@ -1,6 +1,7 @@
+import 'package:sentinel/auth_service.dart';
 import 'package:sentinel/templates/footerOnlyHome.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'dart:convert';
 
 // API endpoint for user signup
@@ -36,12 +37,12 @@ class _SignupState extends State<Signup> {
     try {
       // Build the request body with user input
       Map<String, dynamic> body = {
-        'email': emailController.text.trim(),
+        'email': emailController.text.trim(), // Still required for signup
         'username': usernameController.text.trim(),
         'password': passwordController.text.trim(),
       };
 
-      // Send the POST request
+      // Send the POST request to the signup API
       final response = await http.post(
         Uri.parse(apiURL),
         headers: {'Content-Type': 'application/json'},
@@ -54,34 +55,71 @@ class _SignupState extends State<Signup> {
         setState(() {
           result = 'Success!';
         });
+
+        // Automatically log the user in using username and password
+        await _loginUser(body['username'], body['password']);
       } else {
         // Handle error response
         try {
-          // Parse the error response
           final Map<String, dynamic> errorData = jsonDecode(response.body);
           final Map<String, dynamic> errors = errorData['errors'];
 
-          // Format the errors for display
           String formattedErrors = errors.entries
-              .map((entry) {
-                return '${entry.key}: ${entry.value}';
-              })
+              .map((entry) => '${entry.key}: ${entry.value}')
               .join('\n');
 
           setState(() {
             result = 'Signup Failed:\n$formattedErrors';
           });
         } catch (e) {
-          // Handle unexpected error format
           setState(() {
             result = 'Signup Failed: ${response.body}';
           });
         }
       }
     } catch (e) {
-      // Handle exceptions during the API call
       setState(() {
         result = 'Error: $e';
+      });
+    }
+  }
+
+  Future<void> _loginUser(String username, String password) async {
+    try {
+      // Build the request body for login
+      Map<String, dynamic> body = {'username': username, 'password': password};
+
+      // Send the POST request to the login API
+      final response = await http.post(
+        Uri.parse('https://sentinal-api.mercantec.tech/api/Users/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      // Debug: Log the response
+      print("Login Response: ${response.statusCode}");
+
+      // Handle the response
+      if (response.statusCode == 200) {
+        // Parse the response to get the token
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        String token = responseData['token'];
+
+        // Save the token securely using AuthService
+        final authService = AuthService();
+        await authService.saveToken(token);
+
+        // Navigate to the Dashboard screen
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      } else {
+        // Handle login failure
+        setState(() {
+          result = 'Login Failed: ${response.body}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        result = 'Error during login: $e';
       });
     }
   }

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 class UserDevice {
   String? deviceId;
   String? device;
@@ -18,14 +20,22 @@ class UserDevice {
   });
 
   factory UserDevice.fromJson(Map<String, dynamic> json) {
+    log('JSON Data: $json'); // Use log for debugging
     return UserDevice(
-      deviceId: json['deviceId'],
-      device: json['device'],
-      user: json['user'],
-      userId: json['userId'],
-      id: json['id'],
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      deviceId: json['deviceId']?.toString(), // Handle null safely
+      device: json['device']?.toString(), // Handle null safely
+      user: json['user']?.toString(), // Handle null safely
+      userId:
+          json['userId'] is String
+              ? int.tryParse(
+                json['userId'],
+              ) // Convert String to int if necessary
+              : json['userId'], // Use as int if already an int
+      id: json['id'] as int?,
+      createdAt:
+          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      updatedAt:
+          json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
     );
   }
 
@@ -41,5 +51,13 @@ class UserDevice {
     };
   }
 
-  Future<void> toMap() async {}
+  Map<String, dynamic> toMap() {
+    return toJson();
+  }
 }
+
+// Endpoints
+
+// GET /api/User_Device
+// GET /api/User_Device/device-ids/{userId}
+// DELETE /api/User_Device/{deviceId}
