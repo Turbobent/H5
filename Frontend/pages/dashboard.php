@@ -1,7 +1,6 @@
 <?php
-session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/auth.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/tailwind-styling.php");
 
 require_login();
@@ -91,24 +90,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action'])) {
         <h2 class="<?= $sectionHeading ?>">Welcome to your dashboard</h2>
 
         <?php if (empty($devices)) : ?>
-          <p class="<?= $sectionParagraph ?>">You don't have any devices registered yet.</p>
-          <a href="<?= $baseURL ?>register-device" class="<?= $formButton ?>">
-            Register Device
-          </a>
+        <p class="<?= $sectionParagraph ?>">You don't have any devices registered yet.</p>
+        <a href="<?= $baseURL ?>register-device" class="<?= $formButton ?>">
+          Register Device
+        </a>
         <?php else : ?>
 
-          <!-- Register Device Button (top) -->
-          <div class="w-full flex justify-end">
-            <a href="<?= $baseURL ?>register-device"
-              class="mb-2 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">
-              + Register New Device
-            </a>
-          </div>
+        <!-- Register Device Button (top) -->
+        <div class="w-full flex justify-end">
+          <a href="<?= $baseURL ?>register-device"
+            class="mb-2 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded">
+            + Register New Device
+          </a>
+        </div>
 
-          <h3 class="text-white font-semibold text-lg">Your Devices:</h3>
-          <ul class="text-white space-y-4 text-sm text-left w-full">
-            <?php foreach ($devices as $deviceId): ?>
-              <?php
+        <h3 class="text-white font-semibold text-lg">Your Devices:</h3>
+        <ul class="text-white space-y-4 text-sm text-left w-full">
+          <?php foreach ($devices as $deviceId): ?>
+          <?php
                 $deviceDetailUrl = $baseAPI . "Devices/" . urlencode($deviceId);
                 $ch = curl_init($deviceDetailUrl);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -124,38 +123,38 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action'])) {
                   $deviceName = htmlspecialchars($device['name'] ?? 'Unnamed Device');
                   $deviceStatus = isset($device['status']) && $device['status'] ? '🔐 Armed' : '🔓 Disarmed';
               ?>
-                <li class="bg-gray-800 p-4 rounded shadow">
-                  <p><strong>Name:</strong> <?= $deviceName ?></p>
-                  <p><strong>Status:</strong> <?= $deviceStatus ?></p>
-                  <p class="text-gray-400 text-xs">ID: <?= htmlspecialchars($device['deviceId']) ?></p>
-                  <a href="<?= $baseURL ?>edit-device?deviceId=<?= urlencode($device['deviceId']) ?>"
-                    class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1 rounded">
-                    Edit name
-                  </a>
-                </li>
-              <?php } else { ?>
-                <li class="text-red-400">Failed to load device info for ID: <?= htmlspecialchars($deviceId) ?></li>
-              <?php } ?>
-            <?php endforeach; ?>
-          </ul>
+          <li class="bg-gray-800 p-4 rounded shadow">
+            <p><strong>Name:</strong> <?= $deviceName ?></p>
+            <p><strong>Status:</strong> <?= $deviceStatus ?></p>
+            <p class="text-gray-400 text-xs">ID: <?= htmlspecialchars($device['deviceId']) ?></p>
+            <a href="<?= $baseURL ?>edit-device?deviceId=<?= urlencode($device['deviceId']) ?>"
+              class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-1 rounded">
+              Edit name
+            </a>
+          </li>
+          <?php } else { ?>
+          <li class="text-red-400">Failed to load device info for ID: <?= htmlspecialchars($deviceId) ?></li>
+          <?php } ?>
+          <?php endforeach; ?>
+        </ul>
 
-          <!-- Arm/Disarm buttons -->
-          <form method="POST" class="flex gap-4 mt-6">
-            <button type="submit" name="action" value="arm"
-              class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
-              Arm
-            </button>
-            <button type="submit" name="action" value="disarm"
-              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
-              Disarm
-            </button>
-          </form>
+        <!-- Arm/Disarm buttons -->
+        <form method="POST" class="flex gap-4 mt-6">
+          <button type="submit" name="action" value="arm"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+            Arm
+          </button>
+          <button type="submit" name="action" value="disarm"
+            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+            Disarm
+          </button>
+        </form>
 
-          <!-- View Logs Button -->
-          <a href="<?= $baseURL ?>device-logs"
-            class="mt-6 inline-block bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded text-sm">
-            📄 View Device Logs
-          </a>
+        <!-- View Logs Button -->
+        <a href="<?= $baseURL ?>device-logs"
+          class="mt-6 inline-block bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded text-sm">
+          📄 View Device Logs
+        </a>
 
         <?php endif; ?>
 

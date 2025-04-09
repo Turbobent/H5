@@ -1,7 +1,6 @@
 <?php
-session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/auth.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/tailwind-styling.php");
 
 // Redirect if not logged in
@@ -62,9 +61,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
       <h2 class="<?= $sectionHeading ?>">Register a New Device</h2>
 
       <?php if ($success_message): ?>
-        <p class="text-green-500 text-sm mb-4"><?= htmlspecialchars($success_message) ?></p>
+      <p class="text-green-500 text-sm mb-4"><?= htmlspecialchars($success_message) ?></p>
       <?php elseif ($error_message): ?>
-        <p class="text-red-500 text-sm mb-4"><?= htmlspecialchars($error_message) ?></p>
+      <p class="text-red-500 text-sm mb-4"><?= htmlspecialchars($error_message) ?></p>
       <?php endif; ?>
 
       <form method="POST" class="space-y-6">

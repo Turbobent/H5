@@ -1,7 +1,6 @@
 <?php
-session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/auth.php");
+include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/templates/links.php");
 include_once($_SERVER['DOCUMENT_ROOT'] . "/H5/Frontend/includes/tailwind-styling.php");
 
 require_login();
@@ -16,7 +15,7 @@ $device = null;
 $error_message = "";
 $success_message = "";
 
-// GET device info (same as before)
+// GET device info
 $api_url = $baseAPI . "Devices/" . urlencode($deviceId);
 
 $ch = curl_init($api_url);
