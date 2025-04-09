@@ -15,28 +15,15 @@ public class RabbitMQService : IHostedService
         _scopeFactory = scopeFactory;
     }
 
-    public class IncomingData
+    public class PostLog
     {
-        public long Timestamp { get; set; }
+        public string DeviceId { get; set; }
+        public DateTime? Date { get; set; }
+        public DateTime? EndDate { get; set; }
+        public DateTime ArmedTime { get; set; }
+        public DateTime DisarmedTime { get; set; }
+        public DateTime? TriggeredTime { get; set; }
         public int Movement { get; set; }
-    }
-
-    public DateOnly ConvertTimestampToDate(object timestamp)
-    {
-        // If you're getting a string timestamp
-        if (timestamp is string timestampStr)
-        {
-            DateTime dateTime = DateTime.Parse(timestampStr, null, System.Globalization.DateTimeStyles.RoundtripKind);
-            return DateOnly.FromDateTime(dateTime);
-        }
-        // If you're getting a Unix timestamp as long (seconds)
-        if (timestamp is long unix)
-        {
-            DateTime dateTime = DateTimeOffset.FromUnixTimeSeconds(unix).DateTime;
-            return DateOnly.FromDateTime(dateTime);
-        }
-
-        throw new ArgumentException("Unsupported timestamp format");
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -56,16 +43,17 @@ public class RabbitMQService : IHostedService
             _channel = _connection.CreateModel();
 
             _channel.ExchangeDeclare("amq.topic", ExchangeType.Topic, true);
+            _channel.QueueDeclare(
+                queue: "ArduinoData",
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
 
-            _channel.QueueDeclare(queue: "ArduinoData",
-                                durable: true,
-                                exclusive: false,
-                                autoDelete: false,
-                                arguments: null);
-
-            _channel.QueueBind(queue: "ArduinoData",
-                             exchange: "amq.topic",
-                             routingKey: "ArduinoData");
+            _channel.QueueBind(
+                queue: "ArduinoData",
+                exchange: "amq.topic",
+                routingKey: "ArduinoData");
 
             _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
 
@@ -74,109 +62,116 @@ public class RabbitMQService : IHostedService
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-
-                // Udskriv den rå besked først for at hjælpe med fejlfinding
-                _logger.LogInformation($" [x] Rå OLC data: {message}");
+                _logger.LogInformation($"Received raw message: {message}");
 
                 try
                 {
-                    var options = new JsonSerializerOptions
+                    var olcData = JsonSerializer.Deserialize<PostLog>(
+                        message,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (olcData == null)
                     {
-                        PropertyNameCaseInsensitive = true
-                    };
-
-                    var olcData = JsonSerializer.Deserialize<PostLog>(message, options);
-
-                    if (olcData != null)
-                    {
-                        IncomingData incomingData = new();
-                        var isTriggered = incomingData.Movement > 0;
-
-                        // Check if Date is null, and use current date as fallback if it is
-                        DateOnly timestamp;
-                        if (olcData.Date != null)
-                        {
-                            // Use Date from the PostLog object
-                            var dateTime = new DateTime(olcData.Date.Year, olcData.Date.Month, olcData.Date.Day);
-                            timestamp = ConvertTimestampToDate(dateTime);
-                        }
-                        else
-                        {
-                            // Fallback to current date if Date is null
-                            timestamp = DateOnly.FromDateTime(DateTime.Now);
-                            _logger.LogWarning("OLC data Date is null, using current date as fallback.");
-                        }
-
-                        _logger.LogInformation($"Movement: {incomingData.Movement}");
-
-                        // Log timestamp for debugging
-                        _logger.LogInformation($"Timestamp: {timestamp}");
-
-                        // Gem data i database
-                        using (var scope = _scopeFactory.CreateScope())
-                        {
-                            var dbContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-                            var log = await dbContext.Logs.FirstOrDefaultAsync();
-
-                            // Opret et nyt PostLog-objekt med de nødvendige værdier
-                            var newLog = new Log
-                            {
-                                DeviceId = log.DeviceId,
-                                Date = new DateOnly(log.Date.Year, log.Date.Month, log.Date.Day),
-                                EndDate = new DateOnly(log.EndDate.Year, log.EndDate.Month, log.EndDate.Day),
-                                ArmedTime = new TimeOnly(log.ArmedTime.Hour, log.ArmedTime.Minute),
-                                DisarmedTime = new TimeOnly(log.DisarmedTime.Hour, log.DisarmedTime.Minute),
-                                IsTriggered = isTriggered,  // Set based on movement
-                                TriggeredTime = log.TriggeredTime.HasValue
-                                ? new TimeOnly(log.TriggeredTime.Value.Hour, log.TriggeredTime.Value.Minute)
-                                : null,
-                                UpdatedAt = DateTime.UtcNow,
-                                CreatedAt = DateTime.UtcNow
-                            };
-
-                            // Tilføj til database og gem
-                            await dbContext.Logs.AddAsync(newLog);
-                            await dbContext.SaveChangesAsync();
-
-                            _logger.LogInformation($"Data gemt i database med ID: {newLog.DeviceId}");
-                        }
+                        _logger.LogError("Failed to deserialize message");
+                        return;
                     }
-                    else
+
+                    // Validate required fields
+                    if (string.IsNullOrEmpty(olcData.DeviceId))
                     {
-                        _logger.LogWarning($" [!] Kunne ikke deserialisere OLC data: {message}");
+                        _logger.LogError("DeviceId is missing in the message");
+                        return;
+                    }
+
+                    // Handle dates with fallbacks
+                    var logDate = olcData.Date.HasValue
+                        ? DateOnly.FromDateTime(olcData.Date.Value)
+                        : DateOnly.FromDateTime(DateTime.Now);
+
+                    var endDate = olcData.EndDate.HasValue
+                        ? DateOnly.FromDateTime(olcData.EndDate.Value)
+                        : logDate; // Fallback to logDate if null
+
+                    // Determine if triggered
+                    bool isTriggered = olcData.Movement > 0 || olcData.TriggeredTime.HasValue;
+
+                    _logger.LogInformation($"Processing data for device: {olcData.DeviceId}");
+                    _logger.LogInformation($"Log Date: {logDate}, End Date: {endDate}");
+                    _logger.LogInformation($"Triggered: {isTriggered}");
+
+                    using (var scope = _scopeFactory.CreateScope())
+                    {
+                        var dbContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
+
+                        var newLog = new Log
+                        {
+                            DeviceId = olcData.DeviceId,
+                            Date = logDate,
+                            EndDate = endDate,
+                            ArmedTime = TimeOnly.FromDateTime(olcData.ArmedTime),
+                            DisarmedTime = TimeOnly.FromDateTime(olcData.DisarmedTime),
+                            IsTriggered = isTriggered,
+                            TriggeredTime = olcData.TriggeredTime.HasValue
+                                ? TimeOnly.FromDateTime(olcData.TriggeredTime.Value)
+                                : null,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+
+                        await dbContext.Logs.AddAsync(newLog);
+                        await dbContext.SaveChangesAsync();
+                        _logger.LogInformation($"Successfully saved log for device: {newLog.DeviceId}");
                     }
                 }
                 catch (JsonException ex)
                 {
-                    _logger.LogError($" [!] Fejl ved parsing af OLC data: {ex.Message}. Rå data: {message}");
+                    _logger.LogError($"JSON parsing error: {ex.Message}\nRaw message: {message}");
+                }
+                catch (DbUpdateException ex)
+                {
+                    _logger.LogError($"Database error: {ex.Message}");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError($"Fejl ved håndtering af besked: {ex.Message}");
+                    _logger.LogError($"Unexpected error: {ex.Message}");
                 }
-
-                _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                finally
+                {
+                    _channel.BasicAck(ea.DeliveryTag, false);
+                }
             };
 
-            _channel.BasicConsume(queue: "ArduinoData",
-                                autoAck: false,
-                                consumer: consumer);
+            _channel.BasicConsume(
+                queue: "ArduinoData",
+                autoAck: false,
+                consumer: consumer);
 
-            _logger.LogInformation(" [*] Venter på ArduinoData beskeder...");
-
-            return Task.CompletedTask;
+            _logger.LogInformation("RabbitMQ consumer started successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Der opstod en fejl: {ex.Message}");
-            return Task.CompletedTask;
+            _logger.LogCritical($"Failed to start RabbitMQ service: {ex.Message}");
+            throw;
         }
+
+        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        _channel?.Close();
-        _connection?.Close();
+        try
+        {
+            _channel?.Close();
+            _channel?.Dispose();
+            _connection?.Close();
+            _connection?.Dispose();
+            _logger.LogInformation("RabbitMQ connection closed gracefully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error while closing RabbitMQ connection: {ex.Message}");
+        }
+
         return Task.CompletedTask;
     }
 }
