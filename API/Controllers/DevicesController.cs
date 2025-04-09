@@ -92,8 +92,6 @@ namespace API.Controllers
             //  Validate input
             var errors = new Dictionary<string, string>();
 
-        
-
             if (string.IsNullOrWhiteSpace(postDevice.DeviceId))
             {
                 errors["DeviceId"] = "Device ID is required";
@@ -155,13 +153,15 @@ namespace API.Controllers
                 return NotFound("Device not found.");
             }
 
-            var logs = await _context.Logs.FindAsync(deviceId);
-            if (logs == null)
+            var logs = await _context.Logs
+                .Where(l => l.DeviceId == deviceId)
+                .ToListAsync();
+
+            if (!logs.Any())
             {
                 return NotFound("Logs not found");
             }
 
-            // Ensure user owns the device
             var userOwnsDevice = await _context.User_Devices
                 .AnyAsync(ud => ud.UserId == userId && ud.DeviceId == deviceId);
 
@@ -170,21 +170,18 @@ namespace API.Controllers
                 return Forbid("You do not have permission to delete this device.");
             }
 
-            // Remove any User_Devices mappings for this device
             var userDeviceLinks = await _context.User_Devices
-                .Where(ud => ud.DeviceId == deviceId)
-                .ToListAsync();
-            // Remove all logs mapping for this device
-            var logDevice = await _context.Logs
                 .Where(ud => ud.DeviceId == deviceId)
                 .ToListAsync();
 
             _context.User_Devices.RemoveRange(userDeviceLinks);
-
+            _context.Logs.RemoveRange(logs);
             _context.Devices.Remove(device);
+
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
+
     }
 }
