@@ -11,12 +11,6 @@
             _context = context;
         }
 
-        // GET: api/Logs
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Log>>> GetLogs()
-        {
-            return await _context.Logs.ToListAsync();
-        }
         [Authorize]
         [HttpGet("device/{deviceId}")]
         public async Task<ActionResult<IEnumerable<PostLog>>> GetLogsByDeviceId(string deviceId)
@@ -164,11 +158,6 @@
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool LogExists(int id)
-        {
-            return _context.Logs.Any(e => e.Id == id);
         }
     }
 }

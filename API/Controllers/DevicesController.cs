@@ -1,6 +1,4 @@
-﻿using API.Models;
-using System.Data;
-
+﻿
 namespace API.Controllers
 {
     [Route("api/[controller]")]
@@ -12,13 +10,6 @@ namespace API.Controllers
         public DevicesController(AppDBContext context)
         {
             _context = context;
-        }
-
-        // GET: api/Devices
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Device>>> GetDevices()
-        {
-            return await _context.Devices.ToListAsync();
         }
 
         [Authorize]
@@ -148,21 +139,52 @@ namespace API.Controllers
         }
 
         // DELETE: api/Devices/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDevice(int id)
+        [Authorize]
+        [HttpDelete("{deviceId}")]
+        public async Task<IActionResult> DeleteDevice(string deviceId)
         {
-            var device = await _context.Devices.FindAsync(id);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized("User ID is missing or invalid.");
+            }
+
+            var device = await _context.Devices.FindAsync(deviceId);
             if (device == null)
             {
-                return NotFound();
+                return NotFound("Device not found.");
             }
+
+            var logs = await _context.Logs.FindAsync(deviceId);
+            if (logs == null)
+            {
+                return NotFound("Logs not found");
+            }
+
+            // Ensure user owns the device
+            var userOwnsDevice = await _context.User_Devices
+                .AnyAsync(ud => ud.UserId == userId && ud.DeviceId == deviceId);
+
+            if (!userOwnsDevice)
+            {
+                return Forbid("You do not have permission to delete this device.");
+            }
+
+            // Remove any User_Devices mappings for this device
+            var userDeviceLinks = await _context.User_Devices
+                .Where(ud => ud.DeviceId == deviceId)
+                .ToListAsync();
+            // Remove all logs mapping for this device
+            var logDevice = await _context.Logs
+                .Where(ud => ud.DeviceId == deviceId)
+                .ToListAsync();
+
+            _context.User_Devices.RemoveRange(userDeviceLinks);
 
             _context.Devices.Remove(device);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
-
-      
     }
 }
