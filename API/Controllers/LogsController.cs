@@ -159,5 +159,9 @@
 
             return NoContent();
         }
+        private bool LogExists(int id)
+        {
+            return _context.Logs.Any(e => e.Id == id);
+        }
     }
 }
