@@ -28,7 +28,6 @@ private:
 
     // Movement Count
     long lastMovementCheck = 0;  // Track last check time
-    int movementCount = 0;  // Movement count
 
 public:
     MKRIoTCarrier carrier;

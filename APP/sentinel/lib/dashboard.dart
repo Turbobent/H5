@@ -11,8 +11,6 @@ import 'package:sentinel/templates/footer.dart';
 
 import 'auth_service.dart';
 
-import 'models/User_Device.dart';
-
 const String apiURL = 'https://sentinal-api.mercantec.tech/api/';
 
 class Dashboard extends StatefulWidget {

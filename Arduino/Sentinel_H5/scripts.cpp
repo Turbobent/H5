@@ -24,13 +24,8 @@ float Sentinel::readMovement()
 
     if (currentMillis - lastMovementCheck >= 5000)
     {
-        lastMovementCheck = currentMillis;
         movementValue = analogRead(motionPin); // Read the actual movement sensor value
-        int movement = digitalRead(motionPin);   // Check if movement is detected (HIGH/LOW)
-        if (movement == HIGH)
-        {
-            movementCount++; // Increment the movement count
-        }
     }
+
     return movementValue; // Return the actual sensor value
 }
