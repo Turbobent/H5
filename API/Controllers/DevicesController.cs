@@ -157,11 +157,6 @@ namespace API.Controllers
                 .Where(l => l.DeviceId == deviceId)
                 .ToListAsync();
 
-            if (!logs.Any())
-            {
-                return NotFound("Logs not found");
-            }
-
             var userOwnsDevice = await _context.User_Devices
                 .AnyAsync(ud => ud.UserId == userId && ud.DeviceId == deviceId);
 
