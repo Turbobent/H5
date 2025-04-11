@@ -1,8 +1,8 @@
 import 'package:sentinel/templates/footerOnlyHome.dart';
-import 'package:flutter/material.dart';
+import 'package:sentinel/auth_service.dart';
 import 'package:sentinel/dashboard.dart';
 import 'package:http/http.dart' as http;
-import 'package:sentinel/auth_service.dart';
+import 'package:flutter/material.dart';
 import 'dart:convert';
 
 // API endpoint for user login
@@ -48,6 +48,9 @@ class _LoginState extends State<Login> {
         body: jsonEncode(body),
       );
 
+      // Debug: Log the response
+      print("Login Response: ${response.statusCode}");
+
       // Handle the response
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Parse the response and extract the token
@@ -55,7 +58,9 @@ class _LoginState extends State<Login> {
         String? token = responseData['token'];
 
         if (token != null) {
-          await _authService.saveToken(token); // Save the token securely
+          // Save the token securely
+          await _authService.saveToken(token);
+
           setState(() {
             result = 'Login Successful!';
           });
@@ -72,25 +77,21 @@ class _LoginState extends State<Login> {
           final Map<String, dynamic> errorData = jsonDecode(response.body);
 
           if (errorData.containsKey('message')) {
-            // Display error message from the API
             setState(() {
               result = 'Login Failed: ${errorData['message']}';
             });
           } else {
-            // Handle unexpected error format
             setState(() {
               result = 'Login Failed: ${response.body}';
             });
           }
         } catch (e) {
-          // Handle JSON parsing errors
           setState(() {
             result = 'Login Failed: ${response.body}';
           });
         }
       }
     } catch (e) {
-      // Handle exceptions during the API call
       setState(() {
         result = 'Error: $e';
       });

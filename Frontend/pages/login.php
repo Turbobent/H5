@@ -14,7 +14,7 @@ $error_message = "";
 
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['emailOrUsername']; // Use 'username' to match API
+    $username = $_POST['emailOrUsername'];
     $password = $_POST['password'];
 
     // API URL

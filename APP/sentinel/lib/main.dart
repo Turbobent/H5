@@ -1,10 +1,13 @@
 import 'package:sentinel/templates/footerOnlyHome.dart';
+import 'package:sentinel/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:sentinel/signup.dart';
 import 'package:sentinel/login.dart';
 
 // Entry point of the application
-void main() => runApp(const MyApp());
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -18,6 +21,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const HomeScreen(), // Home screen route
         '/signup': (context) => const Signup(), // Signup screen route
         '/login': (context) => const Login(), // Login screen route
+        '/dashboard': (context) => const Dashboard(), // Dashboard screen
       },
     );
   }

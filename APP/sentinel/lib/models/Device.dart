@@ -12,6 +12,29 @@ class Device {
     this.sharedPasswordId,
     this.sharedPassword,
   });
+
+  factory Device.fromJson(Map<String, dynamic> json) {
+    return Device(
+      deviceId: json['deviceId'],
+      status: json['status'],
+      name: json['name'],
+      sharedPasswordId: json['sharedPasswordId'],
+      sharedPassword:
+          json['sharedPassword'] != null
+              ? SharedPassword.fromJson(json['sharedPassword'])
+              : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'deviceId': deviceId,
+      'status': status,
+      'name': name,
+      'sharedPasswordId': sharedPasswordId,
+      'sharedPassword': sharedPassword?.toJson(),
+    };
+  }
 }
 
 class SharedPassword {
@@ -23,65 +46,38 @@ class SharedPassword {
   SharedPassword({
     required this.passwordId,
     required this.hashedPassword,
-    DateTime? createdAt,
+    required this.createdAt,
     this.devices = const [],
-  }) : createdAt = createdAt ?? DateTime.now();
-}
-
-class DeviceMakePassword {
-  final String deviceId;
-  final String password;
-
-  DeviceMakePassword({
-    required this.deviceId,
-    required this.password,
   });
+
+  factory SharedPassword.fromJson(Map<String, dynamic> json) {
+    return SharedPassword(
+      passwordId: json['passwordId'],
+      hashedPassword: json['hashedPassword'],
+      createdAt: DateTime.parse(json['createdAt']),
+      devices:
+          (json['devices'] as List<dynamic>?)
+              ?.map((device) => Device.fromJson(device))
+              .toList() ??
+          [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'passwordId': passwordId,
+      'hashedPassword': hashedPassword,
+      'createdAt': createdAt.toIso8601String(),
+      'devices': devices.map((device) => device.toJson()).toList(),
+    };
+  }
 }
 
-class DeviceLogin {
-  final String deviceId;
-  final String password;
+// Endpoints
 
-  DeviceLogin({
-    required this.deviceId,
-    required this.password,
-  });
-}
-
-class PostDevice {
-  final String name;
-  final String deviceId;
-  final bool status;
-  final String password;
-
-  PostDevice({
-    required this.name,
-    required this.deviceId,
-    this.status = false,
-    required this.password,
-  });
-}
-
-class UpdateName {
-  final String newName;
-
-  UpdateName({
-    required this.newName,
-  });
-}
-
-class UpdateSta {
-  final bool status;
-
-  UpdateSta({
-    required this.status,
-  });
-}
-
-class UpdatePassword {
-  final String newPassword;
-
-  UpdatePassword({
-    required this.newPassword,
-  });
-}
+// GET /api/Devices
+// POST /api/Devices
+// GET /api/Devices/{deviceId}
+// PUT /api/Devices/UpdateStatus/{deviceId}
+// PUT /api/Devices/UpdateName/{deviceId}
+// DELETE /api/Devices/{id}

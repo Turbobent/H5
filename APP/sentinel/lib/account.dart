@@ -1,11 +1,11 @@
-import 'dart:convert';
 import 'package:sentinel/templates/footer.dart';
 import 'package:sentinel/templates/header.dart';
-import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:sentinel/auth_service.dart';
-import 'package:sentinel/login.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'package:sentinel/login.dart';
+import 'dart:convert';
 
 // Base API URL
 const String apiURL = 'https://sentinal-api.mercantec.tech/api/';
@@ -53,6 +53,7 @@ class _AccountState extends State<Account> {
 
         setState(() {
           // Populate username from the token
+          emailController.text = decodedToken['email'] ?? 'No email in token';
           usernameController.text =
               decodedToken['name'] ?? 'No username in token';
         });
@@ -101,6 +102,7 @@ class _AccountState extends State<Account> {
 
     // Step 3: Prepare request data
     Map<String, String> updatedData = {
+      "email": emailController.text,
       "username": usernameController.text, // Updated username
       "password": passwordController.text, // Updated password
     };
@@ -135,38 +137,44 @@ class _AccountState extends State<Account> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const Header(), // Custom header widget
+      appBar: const Header(),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Profile title
             const Text(
               "Profile",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 64, 92, 218),
+                color: const Color.fromARGB(255, 64, 92, 218),
               ),
             ),
             const SizedBox(height: 20),
-            // Profile form container
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey[200], // Light grey background
-                borderRadius: BorderRadius.circular(10), // Rounded corners
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Email field
+                  const Text(
+                    "Edit the information you wish to change below to update your account (Password is optional).",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromARGB(255, 64, 92, 218),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   const Text(
                     "Email",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 64, 92, 218),
+                      color: const Color.fromARGB(255, 64, 92, 218),
                     ),
                   ),
                   TextField(
@@ -178,12 +186,11 @@ class _AccountState extends State<Account> {
                     onChanged: (_) => setState(() => isChanged = true),
                   ),
                   const SizedBox(height: 10),
-                  // Username field
                   const Text(
                     "Username",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 64, 92, 218),
+                      color: const Color.fromARGB(255, 64, 92, 218),
                     ),
                   ),
                   TextField(
@@ -195,25 +202,16 @@ class _AccountState extends State<Account> {
                     onChanged: (_) => setState(() => isChanged = true),
                   ),
                   const SizedBox(height: 10),
-                  // Password field
                   const Text(
                     "Password",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 64, 92, 218),
-                    ),
-                  ),
-                  const Text(
-                    "Enter your current password or a new one.",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color.fromARGB(255, 255, 0, 0),
+                      color: const Color.fromARGB(255, 64, 92, 218),
                     ),
                   ),
                   TextField(
                     controller: passwordController,
-                    obscureText:
-                        !isPasswordVisible, // Toggle password visibility
+                    obscureText: !isPasswordVisible, // Hide or show password
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
                       isDense: true,
@@ -233,24 +231,29 @@ class _AccountState extends State<Account> {
                     onChanged: (_) => setState(() => isChanged = true),
                   ),
                   const SizedBox(height: 20),
-                  // Save changes button
                   ElevatedButton(
                     onPressed: isChanged ? saveChanges : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isChanged
-                              ? const Color.fromARGB(255, 64, 92, 218)
-                              : Colors.grey,
+                      backgroundColor: isChanged ? Colors.blue : Colors.grey,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     child: const Center(child: Text("Save Changes")),
                   ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: logout, // Call logout function
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Center(child: Text("Logout")),
+                  ),
                 ],
               ),
             ),
             const SizedBox(height: 10),
-            // Success message
             if (successMessage != null)
               Text(
                 successMessage!,
@@ -259,7 +262,6 @@ class _AccountState extends State<Account> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-            // Error message
             if (errorMessage != null)
               Text(
                 errorMessage!,
@@ -268,21 +270,10 @@ class _AccountState extends State<Account> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-            const SizedBox(height: 20),
-            // Logout button
-            ElevatedButton(
-              onPressed: logout, // Call logout function
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Center(child: Text("Logout")),
-            ),
           ],
         ),
       ),
-      bottomNavigationBar: const Footer(), // Custom footer widget
+      bottomNavigationBar: const Footer(),
     );
   }
 }

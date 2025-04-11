@@ -1,8 +1,9 @@
-#include "content.h"
-#include <PubSubClient.h> // Inkluderer PubSubClient-biblioteket
+#include <PubSubClient.h>
 #include <ArduinoJson.h>
-#include <WiFiUdp.h>
 #include <NTPClient.h>
+#include <WiFiUdp.h>
+
+#include "content.h"
 
 Sentinel sentinel(WIFI_SSID, WIFI_PASSWORD);
 
@@ -17,6 +18,8 @@ PubSubClient client(wifiClient);
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 const long gmtOffset_sec = 3600; 
+
+extern String deviceID;
 
 void setup() {
   Serial.begin(9600);
@@ -60,53 +63,45 @@ void setup() {
 }
 
 void loop() {
-  
   client.loop();
-  
+
   // Opdater tid før JSON generering
   timeClient.update();
-  
+
   Serial.println("------ New Scanning ------");
   Serial.print("Timestamp: ");
   Serial.println(timeClient.getFormattedTime());
-  
+
+  Serial.print("Device ID: ");
+  Serial.println(deviceID);
+
   // Læs sensordata
   float movementValue = sentinel.readMovement();
   Serial.print("Movement Registered: ");
   Serial.println(movementValue);
-  
+
   // Opdater display
   sentinel.carrier.display.fillScreen(0x0000);
-  
-  // Movement
+
   sentinel.carrier.display.setTextSize(2);
   sentinel.carrier.display.setCursor(30, 60);
   sentinel.carrier.display.print("Movement: ");
   sentinel.carrier.display.print(movementValue, 1);
-  
-  // People
-  //sentinel.carrier.display.setCursor(30, 120);
-  //sentinel.carrier.display.print("People: ");
-  //sentinel.carrier.display.print(movementCount, 1);
-  
-  // Acceleration
-  //sentinel.carrier.display.setCursor(30, 150);
-  //sentinel.carrier.display.print("Acceleration: ");
-  //sentinel.carrier.display.print(accelerationValue);
-  
+
   // Tilføj data til JSON dokument
   StaticJsonDocument<200> doc;
+  doc["deviceID"] = deviceID;
   doc["timestamp"] = timeClient.getEpochTime();
   doc["movement"] = movementValue;
-  
+
   // Konverter JSON til string
   char jsonBuffer[200];
   serializeJson(doc, jsonBuffer);
-  
+
   // Opdater JSON diagnostisk info
   Serial.println("JSON data genereret:");
   Serial.println(jsonBuffer);
-  
+
   // Send data
   if (client.publish(topic, jsonBuffer)) {
     Serial.print("Data sendt til MQTT emne '");
@@ -120,7 +115,6 @@ void loop() {
 
   Serial.println("Venter 5 sekunder før næste måling...");
   Serial.println();
-  
-  // Vent 5 sekunder før næste måling
+
   delay(5000);
 }

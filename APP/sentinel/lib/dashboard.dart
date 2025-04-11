@@ -1,11 +1,15 @@
+import 'dart:convert';
+
+import 'package:intl/intl.dart';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:sentinel/show_device.dart';
-import 'auth_service.dart';
-import 'dart:convert';
-import 'package:sentinel/templates/footer.dart';
-import 'package:sentinel/templates/header.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+
+import 'package:sentinel/templates/header.dart';
+import 'package:sentinel/templates/footer.dart';
+
+import 'auth_service.dart';
 
 import 'models/User_Device.dart';
 
@@ -21,7 +25,6 @@ class Dashboard extends StatefulWidget {
 class DashboardState extends State<Dashboard> {
   String? errorMessage;
   List<Map<String, String>> userDevices = [];
-  List<Map<String, String>> searchResults = [];
 
   @override
   void initState() {
@@ -29,73 +32,94 @@ class DashboardState extends State<Dashboard> {
     _fetchUserDevices();
   }
 
-  // This function fetches the user's Arduino device codes from the API
+  // Fetch the user's devices
   Future<void> _fetchUserDevices() async {
+    // Get the token from secure storage
     String? token = await AuthService().getToken();
-    if (token == null) return;
 
-    // Decode the token and get the userId as an int
+    // Debugging: Print the token to the console
+    print("Token: $token");
+
+    // Check if the token is null
+    if (token == null) {
+      setState(() {
+        errorMessage = "Token is null. Please log in again.";
+      });
+      return;
+    }
+
+    // Check if the token is expired
+    if (JwtDecoder.isExpired(token)) {
+      setState(() {
+        errorMessage = "Token has expired. Please log in again.";
+      });
+      return;
+    }
+
+    // Decode the token and extract the userId and username
     Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
     int userId = int.parse(
       decodedToken["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"]
           .toString(),
     );
-
-    print("User ID: $userId"); // Print userId for debugging
+    String username = decodedToken["name"] ?? "Unknown User";
 
     try {
       // Fetch user-device mappings
       var userDeviceResponse = await http.get(
         Uri.parse('${apiURL}User_Device/device-ids/$userId'),
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
       );
+      print("User Device Response: ${userDeviceResponse.body}");
 
-      // Check if the response is successful
       if (userDeviceResponse.statusCode == 200) {
-        List<dynamic> userDeviceData = jsonDecode(userDeviceResponse.body);
-
-        // Extract the device IDs for the user
-        List<String> userDeviceIds =
-            userDeviceData
-                .where(
-                  (device) => device["user_id"] == userId,
-                ) // Compare as int
-                .map<String>((device) => device["arduino_id"].toString())
-                .toList();
-
-        // Fetch all devices
-        var allDevicesResponse = await http.get(
-          Uri.parse('${apiURL}Devices'),
-          headers: {"Content-Type": "application/json"},
+        // Parse the response as a list of device IDs
+        List<String> userDeviceIds = List<String>.from(
+          jsonDecode(userDeviceResponse.body),
         );
 
-        // Check if the response is successful
-        if (allDevicesResponse.statusCode == 200) {
-          List<dynamic> allDeviceData = jsonDecode(allDevicesResponse.body);
-
-            // Filter the devices based on userDeviceIdsq
-            setState(() {
-            userDevices = allDeviceData
-              .where((device) => userDeviceIds.contains(device["id"].toString()))
-              .map((device) => UserDevice.fromJson(device).toMap()).cast<Map<String, String>>()
-              .toList();
-
-            // Sort devices by updatedAt in descending order
-            userDevices.sort(
-              (a, b) => DateTime.parse(b["updatedAt"]!)
-                .compareTo(DateTime.parse(a["updatedAt"]!)),
-            );
+        // Fetch details for each device
+        List<Map<String, String>> devices = [];
+        for (String deviceId in userDeviceIds) {
+          var deviceResponse = await http.get(
+            Uri.parse('${apiURL}Devices/$deviceId'),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token",
+            },
+          );
+          if (deviceResponse.statusCode == 200) {
+            Map<String, dynamic> deviceData = jsonDecode(deviceResponse.body);
+            devices.add({
+              "deviceId": deviceData["deviceId"]?.toString() ?? "",
+              "deviceName": deviceData["name"]?.toString() ?? "Unknown",
+              "updatedAt": deviceData["updatedAt"]?.toString() ?? "",
             });
-
-        } else {
-          setState(() {
-            errorMessage = "Failed to fetch device details.";
-          });
+          } else {
+            print("Failed to fetch details for device ID: $deviceId");
+          }
         }
+
+        setState(() {
+          userDevices = devices;
+
+          // Sort devices by updatedAt in descending order
+          userDevices.sort((a, b) {
+            DateTime updatedAtA = DateTime.parse(
+              a["updatedAt"] ?? "1970-01-01T00:00:00Z",
+            );
+            DateTime updatedAtB = DateTime.parse(
+              b["updatedAt"] ?? "1970-01-01T00:00:00Z",
+            );
+            return updatedAtB.compareTo(updatedAtA);
+          });
+        });
       } else {
         setState(() {
-          errorMessage =
-              "Error fetching user-device mappings: ${userDeviceResponse.body}";
+          errorMessage = "No devices found for user: $username";
         });
       }
     } catch (e) {
@@ -105,34 +129,83 @@ class DashboardState extends State<Dashboard> {
     }
   }
 
-  // Function to update the device status
-  Future<void> updateDeviceStatus(String deviceId, String newStatus) async {
+  // Fetch details of a specific device
+  Future<Map<String, dynamic>?> _fetchDeviceDetails(String deviceId) async {
+    // Get the token from secure storage
+    String? token = await AuthService().getToken();
+
     try {
-      var response = await http.put(
-        Uri.parse(
-          'https://sentinal-api.mercantec.tech/api/Devices/$deviceId/status',
-        ),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"status": newStatus}),
+      var response = await http.get(
+        Uri.parse('${apiURL}Devices/$deviceId'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
       );
+      print("Device Details Response for $deviceId: ${response.body}");
 
       if (response.statusCode == 200) {
-        print("Device status updated successfully.");
-        setState(() {
-          // Update the status in the userDevices list
-          userDevices =
-              userDevices.map((device) {
-                if (device["arduino_id"] == deviceId) {
-                  device["status"] = newStatus;
-                }
-                return device;
-              }).toList();
-        });
+        return jsonDecode(response.body);
       } else {
-        print("Failed to update device status: ${response.body}");
+        print("Failed to fetch device details: ${response.body}");
+        return null;
       }
     } catch (e) {
       print("Exception: $e");
+      return null;
+    }
+  }
+
+  // Show device details in a dialog
+  void _showDeviceDetails(String deviceId) async {
+    Map<String, dynamic>? deviceDetails = await _fetchDeviceDetails(deviceId);
+
+    if (deviceDetails != null) {
+      print("Device Details: $deviceDetails");
+
+      // Parse and format the updatedAt date
+      String formattedDate = "Unknown";
+      if (deviceDetails["updatedAt"] != null &&
+          deviceDetails["updatedAt"]!.isNotEmpty) {
+        try {
+          DateTime updatedAt = DateTime.parse(deviceDetails["updatedAt"]!);
+          formattedDate = DateFormat(
+            'd MMMM yyyy, HH:mm', // European style with 24-hour clock
+          ).format(updatedAt);
+        } catch (e) {
+          print("Error parsing date: $e");
+        }
+      }
+
+      // Show the device details in a dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(deviceDetails["title"] ?? "Device Details"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Status: ${deviceDetails["status"] ?? "Unknown"}"),
+                Text(
+                  "Last Updated: $formattedDate",
+                ), // Use the formatted date here
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text("Close"),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      print("Failed to fetch device details for $deviceId");
     }
   }
 
@@ -143,64 +216,16 @@ class DashboardState extends State<Dashboard> {
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SearchAnchor(
-                builder: (BuildContext context, SearchController controller) {
-                  return SearchBar(
-                    controller: controller,
-                    padding: const WidgetStatePropertyAll<EdgeInsets>(
-                      EdgeInsets.symmetric(horizontal: 16.0),
-                    ),
-                    onTap: () {
-                      controller.openView();
-                    },
-                    onChanged: (_) {
-                      controller.openView();
-                    },
-                    leading: const Icon(Icons.search),
-                  );
-                },
-                suggestionsBuilder: (
-                  BuildContext context,
-                  SearchController controller,
-                ) {
-                  final query = controller.text.toLowerCase();
-                  if (query.isEmpty) {
-                    return [];
-                  }
-                  final suggestions =
-                      userDevices
-                          .where(
-                            (device) =>
-                                device["title"]?.toLowerCase().contains(
-                                  query,
-                                ) ??
-                                false,
-                          )
-                          .toList();
-                  return List<Widget>.generate(suggestions.length, (int index) {
-                    final String item =
-                        suggestions[index]["title"] ?? "Untitled Device";
-                    return ListTile(
-                      title: Text(item),
-                      onTap: () {
-                        controller.closeView(item);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => ShowDevice(
-                                  deviceId: suggestions[index]["arduino_id"]!,
-                                ),
-                          ),
-                        );
-                      },
-                    );
-                  });
-                },
+            const SizedBox(height: 20),
+            const Text(
+              'Your Devices',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
             ),
+            const SizedBox(height: 20),
             Expanded(
               child:
                   userDevices.isEmpty
@@ -213,98 +238,52 @@ class DashboardState extends State<Dashboard> {
                           ),
                         ),
                       )
-                      : Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: GridView.builder(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 0.7,
+                      : ListView.builder(
+                        itemCount: userDevices.length,
+                        itemBuilder: (context, index) {
+                          // Parse and format the updatedAt date
+                          String formattedDate = "Unknown";
+                          if (userDevices[index]["updatedAt"] != null &&
+                              userDevices[index]["updatedAt"]!.isNotEmpty) {
+                            try {
+                              DateTime updatedAt = DateTime.parse(
+                                userDevices[index]["updatedAt"]!,
+                              );
+                              formattedDate = DateFormat(
+                                'd MMMM yyyy, HH:mm', // European style with 24-hour clock
+                              ).format(updatedAt);
+                            } catch (e) {
+                              print("Error parsing date: $e");
+                            }
+                          }
+
+                          return Card(
+                            color: const Color.fromARGB(255, 64, 92, 218),
+                            margin: const EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 20,
+                            ),
+                            child: ListTile(
+                              title: Text(
+                                userDevices[index]["deviceName"] ?? "Unknown",
+                                style: const TextStyle(color: Colors.white),
                               ),
-                          itemCount: userDevices.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              padding: const EdgeInsets.all(8.0),
-                              decoration: BoxDecoration(
-                                color:
-                                    Colors.grey[200], // Light grey background
-                                borderRadius: BorderRadius.circular(8.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.grey.withOpacity(0.5),
-                                    spreadRadius: 2,
-                                    blurRadius: 5,
-                                    offset: const Offset(
-                                      0,
-                                      3,
-                                    ), // Shadow position
-                                  ),
-                                ],
+                              subtitle: Text(
+                                "Last Updated: $formattedDate",
+                                style: const TextStyle(color: Colors.white70),
                               ),
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  // Device Name
-                                  Text(
-                                    userDevices[index]["title"] ??
-                                        "Untitled Device",
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  // Device Status
-                                  Text(
-                                    "Status: ${userDevices[index]["status"] ?? "Unknown"}",
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  // Arm and Disarm Buttons
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          // Call updateDeviceStatus to arm the device
-                                          updateDeviceStatus(
-                                            userDevices[index]["arduino_id"]!,
-                                            "armed",
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                        ),
-                                        child: const Text("Arm"),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          // Call updateDeviceStatus to disarm the device
-                                          updateDeviceStatus(
-                                            userDevices[index]["arduino_id"]!,
-                                            "disarmed",
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red,
-                                        ),
-                                        child: const Text("Disarm"),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                              trailing: IconButton(
+                                icon: const Icon(Icons.info),
+                                color: Colors.white,
+                                onPressed: () {
+                                  _showDeviceDetails(
+                                    userDevices[index]["deviceId"]!,
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          );
+                        },
                       ),
             ),
           ],
